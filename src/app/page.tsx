@@ -636,7 +636,7 @@ function AnalyticsPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="label" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} allowDecimals={false}/>
-              <Tooltip contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+              <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="value" name="Total" radius={[4,4,0,0]}>
                 {funnel.map((_:any,i:number)=><Cell key={i} fill={`url(#gFunnel${i})`}/>)}
               </Bar>
@@ -753,7 +753,7 @@ function ObjectionsPage({calls,offers}:any){
                   <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
                   <XAxis dataKey="l" tick={{fontSize:9,fill:C.muted}} axisLine={false} tickLine={false} angle={-20} textAnchor="end" interval={0}/>
                   <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} allowDecimals={false}/>
-                  <Tooltip contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+                  <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
                   <Bar dataKey="total" name="Occurrences" radius={[4,4,0,0]}>
                     {stats.map((s:any,i:number)=><Cell key={i} fill={`url(#gObj${i})`}/>)}
                   </Bar>
@@ -873,7 +873,7 @@ function PaiementsPage({calls,offers,onUpdate}:any){
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
               <XAxis dataKey="mois" tick={{fontSize:9,fill:C.muted2}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:C.muted2}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>v>=1000?v/1000+"k":String(v)}/>
-              <Tooltip formatter={(v:number)=>[fmt(v),"Commission"]} contentStyle={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="comm" fill="url(#gPrev)" radius={[4,4,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
@@ -999,7 +999,7 @@ function PerformancesOffresPage({calls,offers}:any){
             <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
             <XAxis dataKey="name" tick={{fontSize:9,fill:C.muted}} axisLine={false} tickLine={false} angle={-20} textAnchor="end" interval={0} tickFormatter={(v:string)=>v.split(" ").slice(0,2).join(" ")}/>
             <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>money?(v>=1000?v/1000+"k":String(v)):pct?v+"%":String(v)}/>
-            <Tooltip formatter={(v:number)=>[money?fmt(v):pct?v+"%":v,title]} contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+            <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
             <Bar dataKey={dataKey} radius={[4,4,0,0]}>
               {data.map((_:any,i:number)=><Cell key={i} fill={`url(#gPerf${dataKey}${i})`}/>)}
             </Bar>
