@@ -316,7 +316,7 @@ function DashboardPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="date" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>v>=1000?v/1000+"k":String(v)}/>
-              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/
+              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="cash" name="Cash" fill="url(#gCashBar)" radius={[4,4,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
@@ -339,7 +339,7 @@ function DashboardPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="date" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} domain={[0,100]} tickFormatter={(v:number)=>v+"%"}/>
-              <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/
+              <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="closing" name="Closing %" fill="url(#gCloseBar)" radius={[4,4,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
@@ -360,7 +360,7 @@ function DashboardPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="date" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>v>=1000?v/1000+"k":String(v)}/>
-              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/
+              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="comm" name="Commission" fill="url(#gCommBar)" radius={[4,4,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
@@ -653,7 +653,7 @@ function AnalyticsPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="date" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>v>=1000?v/1000+"k":String(v)}/>
-              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/
+              <Tooltip content={<ChartTip money/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="comm" name="Commission" fill="url(#gAComm)" radius={[4,4,0,0]}/>
               <Bar dataKey="ventes" name="Ventes" fill="url(#gAVentes)" radius={[4,4,0,0]}/>
               <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:11,fontFamily:SANS,color:C.muted,paddingTop:8}}/>
@@ -1221,7 +1221,7 @@ function AgendaPage({offers,googleEvents,gcalSession}:any){
 function BookingPage({calendlyUrl,onSaveCalendly}:any){
   const [editing,setEditing]=useState(false);
   const [tmpUrl,setTmpUrl]=useState(calendlyUrl||"");
-  const embedUrl=calendlyUrl?`${calendlyUrl}?embed_domain=closer-crm-deploy.vercel.app&embed_type=Inline&hide_landing_page_details=1&hide_gdpr_banner=1&background_color=0f0f0f&text_color=f0f0f0&primary_color=e63535`:"";
+  const embedUrl=calendlyUrl?`${calendlyUrl}?embed_domain=kloze.vercel.app&embed_type=Inline&hide_landing_page_details=1&hide_gdpr_banner=1&background_color=0f0f0f&text_color=f0f0f0&primary_color=e63535`:"";
   return(
     <div>
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
@@ -1377,10 +1377,10 @@ function TrialExpiredScreen({user,onLogout}:any){
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
         </div>
         <h1 style={{fontSize:28,fontWeight:700,color:C.white,margin:"0 0 12px",letterSpacing:-.5}}>Votre essai gratuit est terminé</h1>
-        <p style={{fontSize:14,color:C.muted,margin:"0 0 32px",lineHeight:1.6}}>Vous avez profité de 10 jours gratuits sur le Closer CRM. Pour continuer à suivre vos performances, activez votre abonnement.</p>
+        <p style={{fontSize:14,color:C.muted,margin:"0 0 32px",lineHeight:1.6}}>Vous avez profité de 10 jours gratuits sur le Kloze. Pour continuer à suivre vos performances, activez votre abonnement.</p>
         <div style={{background:C.card,border:`1px solid rgba(230,53,53,.2)`,borderRadius:16,padding:"28px 32px",marginBottom:20,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${C.red},transparent)`}}/>
-          <div style={{fontSize:11,fontWeight:700,color:C.red,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Closer CRM Pro</div>
+          <div style={{fontSize:11,fontWeight:700,color:C.red,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Kloze Pro</div>
           <div style={{fontSize:42,fontWeight:800,color:C.white,letterSpacing:-1.5,lineHeight:1}}><span style={{fontSize:20,fontWeight:400,color:C.muted,verticalAlign:"top",marginTop:10,display:"inline-block"}}>€</span>29<span style={{fontSize:16,fontWeight:400,color:C.muted}}>/mois</span></div>
           <div style={{fontSize:12,color:C.muted,margin:"8px 0 20px"}}>Accès illimité à toutes les fonctionnalités</div>
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24,textAlign:"left"}}>
@@ -1391,7 +1391,7 @@ function TrialExpiredScreen({user,onLogout}:any){
             ))}
           </div>
           <button
-            onClick={()=>window.open("mailto:contact@closer-crm.com?subject=Abonnement Closer CRM Pro","_blank")}
+            onClick={()=>window.open("mailto:contact@closer-crm.com?subject=Abonnement Kloze Pro","_blank")}
             style={{width:"100%",background:C.red,color:C.white,border:"none",borderRadius:10,padding:"14px 0",fontSize:14,fontWeight:600,cursor:"pointer",letterSpacing:.2,boxShadow:`0 4px 16px rgba(230,53,53,.3)`,transition:"all .2s"}}
             onMouseEnter={(e:any)=>e.currentTarget.style.opacity=".9"}
             onMouseLeave={(e:any)=>e.currentTarget.style.opacity="1"}
@@ -1594,7 +1594,7 @@ export default function Home(){
         <div style={{padding:"20px 18px",borderBottom:`1px solid ${C.border}`}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:30,height:30,borderRadius:6,background:`linear-gradient(135deg,${C.red},${C.redDim})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-            <div><div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SANS,letterSpacing:-.3}}>Closer CRM</div><div style={{fontSize:10,color:C.muted,fontFamily:SANS}}>Sales Dashboard</div></div>
+            <div><div style={{fontSize:13,fontWeight:700,color:C.white,fontFamily:SANS,letterSpacing:-.3}}>Kloze</div><div style={{fontSize:10,color:C.muted,fontFamily:SANS}}>Sales Dashboard</div></div>
           </div>
         </div>
         <div style={{padding:"14px",margin:"10px 10px 4px",background:C.card,borderRadius:10,border:`1px solid ${C.border}`,position:"relative",overflow:"hidden"}}><div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,${C.red}60,transparent)`}}/>
