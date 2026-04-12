@@ -235,31 +235,22 @@ function ChartTip({active,payload,label,money=false}:any){
   );
 }
 
-const TOOLTIP_WRAPPER_STYLE = {
-  zIndex: 9999,
-  outline: "none",
-};
-
-const PIE_TOOLTIP_STYLE = {
-  zIndex: 9999,
-  outline: "none",
-  position: "fixed" as const,
-};
+const TOOLTIP_WRAPPER_STYLE:any = { zIndex: 9999, outline: "none" };
+const PIE_TOOLTIP_STYLE:any = { zIndex: 9999, outline: "none" };
 
 function PieTip({active,payload}:any){
   if(!active||!payload?.length) return null;
   const p=payload[0];
   return(
     <div style={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,padding:"10px 14px",fontSize:12,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.8)",zIndex:9999,position:"relative"}}>
-      <div style={{display:"flex",alignItems:"center",gap:8}}>
-        <span style={{width:8,height:8,borderRadius:"50%",background:p.payload?.fill||p.color||C.red,display:"inline-block",flexShrink:0}}/>
-        <span style={{color:C.white,fontWeight:700}}>{p.name}</span>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+        <span style={{width:8,height:8,borderRadius:"50%",background:p.payload?.fill||p.color||C.red,display:"inline-block"}}/>
+        <span style={{color:C.white,fontWeight:700,fontSize:12}}>{p.name}</span>
       </div>
-      <div style={{color:p.color||C.white,fontWeight:800,fontSize:14,marginTop:4}}>{fmt(p.value)}</div>
+      <div style={{color:p.color||C.white,fontWeight:800,fontSize:14}}>{typeof p.value==="number"&&p.value>100?fmt(p.value):p.value}</div>
     </div>
   );
 }
-
 
 function DashboardPage({calls,offers}:any){
   const [period,setPeriod]=useState("month");
@@ -391,7 +382,7 @@ function DashboardPage({calls,offers}:any){
           <div style={{fontSize:24,fontWeight:600,color:C.white,fontFamily:SANS,letterSpacing:-.8,marginBottom:16}}>{kpi.sales} vente{kpi.sales!==1?"s":""}</div>
           {byOffer.length>0?(
             <ResponsiveContainer width="100%" height={180}>
-              <PieChart style={{overflow:"visible"}}>
+              <PieChart>
                 <Pie data={byOffer} cx="50%" cy="44%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" strokeWidth={0}>
                   {byOffer.map((_:any,i:number)=><Cell key={i} fill={PIE_COLORS[i%PIE_COLORS.length]}/>)}
                 </Pie>
@@ -633,7 +624,7 @@ function AnalyticsPage({calls,offers}:any){
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={funnel} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:0}}>
+            <BarChart data={funnel} margin={{top:5,right:5,left:-10,bottom:0}}>
               <defs>
                 {funnel.map((s:any,i:number)=>(
                   <linearGradient key={i} id={`gFunnel${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -645,7 +636,7 @@ function AnalyticsPage({calls,offers}:any){
               <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
               <XAxis dataKey="label" tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} allowDecimals={false}/>
-              <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+              <Tooltip contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="value" name="Total" radius={[4,4,0,0]}>
                 {funnel.map((_:any,i:number)=><Cell key={i} fill={`url(#gFunnel${i})`}/>)}
               </Bar>
@@ -750,7 +741,7 @@ function ObjectionsPage({calls,offers}:any){
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={stats} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:30}}>
+                <BarChart data={stats} margin={{top:5,right:5,left:-10,bottom:30}}>
                   <defs>
                     {stats.map((s:any,i:number)=>(
                       <linearGradient key={i} id={`gObj${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -762,7 +753,7 @@ function ObjectionsPage({calls,offers}:any){
                   <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
                   <XAxis dataKey="l" tick={{fontSize:9,fill:C.muted}} axisLine={false} tickLine={false} angle={-20} textAnchor="end" interval={0}/>
                   <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} allowDecimals={false}/>
-                  <Tooltip content={<ChartTip/>} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+                  <Tooltip contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
                   <Bar dataKey="total" name="Occurrences" radius={[4,4,0,0]}>
                     {stats.map((s:any,i:number)=><Cell key={i} fill={`url(#gObj${i})`}/>)}
                   </Bar>
@@ -772,11 +763,11 @@ function ObjectionsPage({calls,offers}:any){
             <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:24}}>
               <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8,fontFamily:SANS}}>Répartition</div>
               <ResponsiveContainer width="100%" height={220}>
-                <PieChart style={{overflow:"visible"}}>
+                <PieChart>
                   <Pie data={pieData} cx="50%" cy="45%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
                     {pieData.map((p:any,i:number)=><Cell key={i} fill={p.color}/>)}
                   </Pie>
-                  <Tooltip content={<PieTip/>} wrapperStyle={PIE_TOOLTIP_STYLE}/>
+                  <Tooltip formatter={(v:number,n:string)=>[`${v} (${total>0?Math.round(v/total*100):0}%)`,n]} contentStyle={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={PIE_TOOLTIP_STYLE}/>
                   <Legend iconType="circle" iconSize={6} wrapperStyle={{fontSize:10,fontFamily:SANS,color:C.muted}}/>
                 </PieChart>
               </ResponsiveContainer>
@@ -882,7 +873,7 @@ function PaiementsPage({calls,offers,onUpdate}:any){
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
               <XAxis dataKey="mois" tick={{fontSize:9,fill:C.muted2}} axisLine={false} tickLine={false}/>
               <YAxis tick={{fontSize:9,fill:C.muted2}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>v>=1000?v/1000+"k":String(v)}/>
-              <Tooltip formatter={(v:number)=>[fmt(v),"Commission"]} contentStyle={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,fontSize:11,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.6)"}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+              <Tooltip formatter={(v:number)=>[fmt(v),"Commission"]} contentStyle={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
               <Bar dataKey="comm" fill="url(#gPrev)" radius={[4,4,0,0]}/>
             </BarChart>
           </ResponsiveContainer>
@@ -996,7 +987,7 @@ function PerformancesOffresPage({calls,offers}:any){
           </div>
         </div>
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={data} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:40}}>
+          <BarChart data={data} margin={{top:5,right:5,left:-10,bottom:40}}>
             <defs>
               {data.map((_:any,i:number)=>(
                 <linearGradient key={i} id={`gPerf${dataKey}${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -1008,7 +999,7 @@ function PerformancesOffresPage({calls,offers}:any){
             <CartesianGrid strokeDasharray="2 4" stroke={C.border} vertical={false}/>
             <XAxis dataKey="name" tick={{fontSize:9,fill:C.muted}} axisLine={false} tickLine={false} angle={-20} textAnchor="end" interval={0} tickFormatter={(v:string)=>v.split(" ").slice(0,2).join(" ")}/>
             <YAxis tick={{fontSize:10,fill:C.muted}} axisLine={false} tickLine={false} tickFormatter={(v:number)=>money?(v>=1000?v/1000+"k":String(v)):pct?v+"%":String(v)}/>
-            <Tooltip formatter={(v:number)=>[money?fmt(v):pct?v+"%":v,title]} contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.6)"}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+            <Tooltip formatter={(v:number)=>[money?fmt(v):pct?v+"%":v,title]} contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
             <Bar dataKey={dataKey} radius={[4,4,0,0]}>
               {data.map((_:any,i:number)=><Cell key={i} fill={`url(#gPerf${dataKey}${i})`}/>)}
             </Bar>
@@ -1242,7 +1233,7 @@ function AgendaPage({offers,googleEvents,gcalSession}:any){
 function BookingPage({calendlyUrl,onSaveCalendly}:any){
   const [editing,setEditing]=useState(false);
   const [tmpUrl,setTmpUrl]=useState(calendlyUrl||"");
-  const embedUrl=calendlyUrl?`${calendlyUrl}?embed_domain=kloze.vercel.app&embed_type=Inline&hide_landing_page_details=1&hide_gdpr_banner=1&background_color=0f0f0f&text_color=f0f0f0&primary_color=e63535`:"";
+  const embedUrl=calendlyUrl?`${calendlyUrl}?embed_domain=closer-crm-deploy.vercel.app&embed_type=Inline&hide_landing_page_details=1&hide_gdpr_banner=1&background_color=0f0f0f&text_color=f0f0f0&primary_color=e63535`:"";
   return(
     <div>
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
@@ -1375,12 +1366,11 @@ function CalendrierSemaine({rdvs,offers,googleEvents,gcalSession,weekOffset,setW
     </div>
   );
 }
-// ─── Helpers accès ───────────────────────────────────────────────────────────
+
 function getTrialDaysLeft(trialStartedAt:string|null):number{
   if(!trialStartedAt) return 10;
   const diff=Date.now()-new Date(trialStartedAt).getTime();
-  const daysPassed=diff/(1000*60*60*24);
-  return Math.max(0,Math.ceil(10-daysPassed));
+  return Math.max(0,Math.ceil(10-diff/(1000*60*60*24)));
 }
 function hasAccess(profile:any):boolean{
   if(!profile) return false;
@@ -1388,44 +1378,23 @@ function hasAccess(profile:any):boolean{
   if(profile.plan_active) return true;
   return getTrialDaysLeft(profile.trial_started_at)>0;
 }
-
-// ─── Écran trial expiré ───────────────────────────────────────────────────────
-function TrialExpiredScreen({user,onLogout}:any){
+function TrialExpiredScreen({onLogout}:any){
   return(
     <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:SANS}}>
       <div style={{textAlign:"center",maxWidth:480,padding:"0 24px"}}>
-        <div style={{width:64,height:64,borderRadius:16,background:`linear-gradient(135deg,${C.red},${C.redDim})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px",boxShadow:`0 0 32px rgba(230,53,53,.3)`}}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-        </div>
+        <div style={{width:64,height:64,borderRadius:16,background:`linear-gradient(135deg,${C.red},${C.redDim})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 24px"}}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
         <h1 style={{fontSize:28,fontWeight:700,color:C.white,margin:"0 0 12px",letterSpacing:-.5}}>Votre essai gratuit est terminé</h1>
-        <p style={{fontSize:14,color:C.muted,margin:"0 0 32px",lineHeight:1.6}}>Vous avez profité de 10 jours gratuits sur le Kloze. Pour continuer à suivre vos performances, activez votre abonnement.</p>
+        <p style={{fontSize:14,color:C.muted,margin:"0 0 32px",lineHeight:1.6}}>Activez votre abonnement pour continuer à utiliser Kloze.</p>
         <div style={{background:C.card,border:`1px solid rgba(230,53,53,.2)`,borderRadius:16,padding:"28px 32px",marginBottom:20,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${C.red},transparent)`}}/>
-          <div style={{fontSize:11,fontWeight:700,color:C.red,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Kloze Pro</div>
-          <div style={{fontSize:42,fontWeight:800,color:C.white,letterSpacing:-1.5,lineHeight:1}}><span style={{fontSize:20,fontWeight:400,color:C.muted,verticalAlign:"top",marginTop:10,display:"inline-block"}}>€</span>29<span style={{fontSize:16,fontWeight:400,color:C.muted}}>/mois</span></div>
-          <div style={{fontSize:12,color:C.muted,margin:"8px 0 20px"}}>Accès illimité à toutes les fonctionnalités</div>
-          <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24,textAlign:"left"}}>
-            {["Dashboard & KPIs en temps réel","Suivi des appels et deals","Analytics avancées","Objections & Paiements","Agenda & Booking Calendly"].map((f,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:C.off}}>
-                <span style={{color:C.green,fontSize:16}}>✓</span>{f}
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={()=>window.open("mailto:contact@closer-crm.com?subject=Abonnement Kloze Pro","_blank")}
-            style={{width:"100%",background:C.red,color:C.white,border:"none",borderRadius:10,padding:"14px 0",fontSize:14,fontWeight:600,cursor:"pointer",letterSpacing:.2,boxShadow:`0 4px 16px rgba(230,53,53,.3)`,transition:"all .2s"}}
-            onMouseEnter={(e:any)=>e.currentTarget.style.opacity=".9"}
-            onMouseLeave={(e:any)=>e.currentTarget.style.opacity="1"}
-          >
-            Activer mon abonnement →
-          </button>
+          <div style={{fontSize:42,fontWeight:800,color:C.white,letterSpacing:-1.5,lineHeight:1,marginBottom:8}}>29€<span style={{fontSize:16,fontWeight:400,color:C.muted}}>/mois</span></div>
+          <button onClick={()=>window.open("mailto:contact@kloze.io?subject=Abonnement Kloze Pro","_blank")} style={{width:"100%",background:C.red,color:C.white,border:"none",borderRadius:10,padding:"14px 0",fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:`0 4px 16px rgba(230,53,53,.3)`}}>Activer mon abonnement →</button>
         </div>
         <button onClick={onLogout} style={{background:"transparent",border:"none",color:C.muted,fontSize:12,cursor:"pointer",fontFamily:SANS}}>Se déconnecter</button>
       </div>
     </div>
   );
 }
-
 export default function Home(){
   const [page,setPage]=useState("dashboard");
   const [user,setUser]=useState<any>(null);
@@ -1471,13 +1440,7 @@ export default function Home(){
       if(!session){ window.location.href='/auth'; return; }
       // Charge le profil utilisateur
       const {data:profileData}=await supabase.from("profiles").select("*").eq("id",session.user.id).single();
-      if(profileData){
-        setProfile(profileData);
-        if(profileData.calendly_url) setCalendlyUrl(profileData.calendly_url);
-        if(!profileData.trial_started_at){
-          await supabase.from("profiles").update({trial_started_at:new Date().toISOString()}).eq("id",session.user.id);
-        }
-      }
+      if(profileData){ setProfile(profileData); if(profileData.calendly_url) setCalendlyUrl(profileData.calendly_url); if(!profileData.trial_started_at) await supabase.from("profiles").update({trial_started_at:new Date().toISOString()}).eq("id",session.user.id); }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange(async(event,session)=>{
       setUser(session?.user??null);
@@ -1590,14 +1553,8 @@ export default function Home(){
     {id:"agenda",    label:"Agenda",         icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'},
     {id:"booking",   label:"Booking",        icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'},
   ];
-  // Vérification accès trial/owner/pro
-  if(!authLoading && user && profile && !hasAccess(profile)){
-    return <TrialExpiredScreen user={user} onLogout={handleLogout}/>;
-  }
-
-  // Bandeau trial restant (si pas owner et trial actif)
-  const trialDaysLeft = profile && profile.role !== 'owner' && !profile.plan_active ? getTrialDaysLeft(profile.trial_started_at) : null;
-
+  if(!authLoading&&user&&profile&&!hasAccess(profile)) return <TrialExpiredScreen onLogout={handleLogout}/>;
+  const trialDaysLeft=profile&&profile.role!=="owner"&&!profile.plan_active?getTrialDaysLeft(profile.trial_started_at):null;
   if(authLoading) return(
     <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
@@ -1626,13 +1583,7 @@ export default function Home(){
         <nav style={{flex:1,padding:"8px 10px",overflowY:"auto"}}>
           {NAV.map(n=>{ const active=page===n.id; return <button key={n.id} onClick={()=>setPage(n.id)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 12px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontWeight:active?500:400,textAlign:"left",transition:"all .15s ease",background:active?`rgba(230,53,53,.1)`:"transparent",color:active?C.white:C.muted,fontFamily:SANS,marginBottom:2,letterSpacing:.1}} onMouseEnter={(e:any)=>{if(!active){e.currentTarget.style.background=C.card2;e.currentTarget.style.color=C.off;}}} onMouseLeave={(e:any)=>{if(!active){e.currentTarget.style.background="transparent";e.currentTarget.style.color=C.muted;}}}><span style={{opacity:active?1:.5,display:"flex",alignItems:"center",flexShrink:0,transition:"opacity .15s"}} dangerouslySetInnerHTML={{__html:n.icon}}/><span style={{flex:1}}>{n.label}</span>{active&&<div style={{width:3,height:3,borderRadius:"50%",background:C.red,flexShrink:0}}/>}</button>;})}
         </nav>
-        {trialDaysLeft!==null&&trialDaysLeft<=7&&(
-          <div style={{margin:"0 10px 8px",background:`rgba(230,53,53,.06)`,border:`1px solid rgba(230,53,53,.15)`,borderRadius:8,padding:"10px 14px"}}>
-            <div style={{fontSize:10,fontWeight:700,color:C.red,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Essai gratuit</div>
-            <div style={{fontSize:13,fontWeight:700,color:C.white}}>{trialDaysLeft === 0 ? "Dernier jour !" : `J-${trialDaysLeft}`}</div>
-            <div style={{fontSize:10,color:C.muted,marginTop:2}}>avant expiration</div>
-          </div>
-        )}
+        {trialDaysLeft!==null&&trialDaysLeft<=7&&(<div style={{margin:"0 10px 8px",background:"rgba(230,53,53,.06)",border:"1px solid rgba(230,53,53,.15)",borderRadius:8,padding:"10px 14px"}}><div style={{fontSize:10,fontWeight:700,color:C.red,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Essai gratuit</div><div style={{fontSize:13,fontWeight:700,color:C.white}}>{trialDaysLeft===0?"Dernier jour !":`J-${trialDaysLeft}`}</div><div style={{fontSize:10,color:C.muted,marginTop:2}}>avant expiration</div></div>)}
         <div style={{padding:"14px 18px",borderTop:`1px solid ${C.border}`}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:30,height:30,borderRadius:"50%",background:`linear-gradient(135deg,${C.red}30,${C.red}10)`,border:`1px solid ${C.red}30`,display:"flex",alignItems:"center",justifyContent:"center",color:C.redText,fontSize:12,fontWeight:700,fontFamily:SANS,flexShrink:0}}>{user?.email?.[0]?.toUpperCase()||"C"}</div>
