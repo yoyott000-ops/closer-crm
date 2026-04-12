@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Closer CRM',
-  description: 'CRM haute performance pour Closers',
+  title: 'Kloze',
+  description: 'Le CRM haute performance pour Closers',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
