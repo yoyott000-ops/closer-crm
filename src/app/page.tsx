@@ -240,6 +240,27 @@ const TOOLTIP_WRAPPER_STYLE = {
   outline: "none",
 };
 
+const PIE_TOOLTIP_STYLE = {
+  zIndex: 9999,
+  outline: "none",
+  position: "fixed" as const,
+};
+
+function PieTip({active,payload}:any){
+  if(!active||!payload?.length) return null;
+  const p=payload[0];
+  return(
+    <div style={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,padding:"10px 14px",fontSize:12,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.8)",zIndex:9999,position:"relative"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <span style={{width:8,height:8,borderRadius:"50%",background:p.payload?.fill||p.color||C.red,display:"inline-block",flexShrink:0}}/>
+        <span style={{color:C.white,fontWeight:700}}>{p.name}</span>
+      </div>
+      <div style={{color:p.color||C.white,fontWeight:800,fontSize:14,marginTop:4}}>{fmt(p.value)}</div>
+    </div>
+  );
+}
+
+
 function DashboardPage({calls,offers}:any){
   const [period,setPeriod]=useState("month");
   const [start,setStart]=useState(""); const [end,setEnd]=useState("");
@@ -370,11 +391,11 @@ function DashboardPage({calls,offers}:any){
           <div style={{fontSize:24,fontWeight:600,color:C.white,fontFamily:SANS,letterSpacing:-.8,marginBottom:16}}>{kpi.sales} vente{kpi.sales!==1?"s":""}</div>
           {byOffer.length>0?(
             <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
+              <PieChart style={{overflow:"visible"}}>
                 <Pie data={byOffer} cx="50%" cy="44%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" strokeWidth={0}>
                   {byOffer.map((_:any,i:number)=><Cell key={i} fill={PIE_COLORS[i%PIE_COLORS.length]}/>)}
                 </Pie>
-                <Tooltip formatter={(v:number)=>[fmt(v),"Cash"]} contentStyle={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,fontSize:11,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.6)"}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+                <Tooltip content={<PieTip/>} wrapperStyle={PIE_TOOLTIP_STYLE}/>
                 <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:11,fontFamily:SANS,color:C.muted,paddingTop:8}}/>
               </PieChart>
             </ResponsiveContainer>
@@ -612,7 +633,7 @@ function AnalyticsPage({calls,offers}:any){
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={funnel} margin={{top:5,right:5,left:-10,bottom:0}}>
+            <BarChart data={funnel} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:0}}>
               <defs>
                 {funnel.map((s:any,i:number)=>(
                   <linearGradient key={i} id={`gFunnel${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -729,7 +750,7 @@ function ObjectionsPage({calls,offers}:any){
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={stats} margin={{top:5,right:5,left:-10,bottom:30}}>
+                <BarChart data={stats} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:30}}>
                   <defs>
                     {stats.map((s:any,i:number)=>(
                       <linearGradient key={i} id={`gObj${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -751,11 +772,11 @@ function ObjectionsPage({calls,offers}:any){
             <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:24}}>
               <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,marginBottom:8,fontFamily:SANS}}>Répartition</div>
               <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
+                <PieChart style={{overflow:"visible"}}>
                   <Pie data={pieData} cx="50%" cy="45%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
                     {pieData.map((p:any,i:number)=><Cell key={i} fill={p.color}/>)}
                   </Pie>
-                  <Tooltip formatter={(v:number,n:string)=>[`${v} (${total>0?Math.round(v/total*100):0}%)`,n]} contentStyle={{background:C.surface,border:`1px solid ${C.border2}`,borderRadius:8,fontSize:11,fontFamily:SANS,boxShadow:"0 8px 24px rgba(0,0,0,.6)"}} wrapperStyle={TOOLTIP_WRAPPER_STYLE} cursor={{fill:"rgba(255,255,255,0.04)"}}/>
+                  <Tooltip content={<PieTip/>} wrapperStyle={PIE_TOOLTIP_STYLE}/>
                   <Legend iconType="circle" iconSize={6} wrapperStyle={{fontSize:10,fontFamily:SANS,color:C.muted}}/>
                 </PieChart>
               </ResponsiveContainer>
@@ -975,7 +996,7 @@ function PerformancesOffresPage({calls,offers}:any){
           </div>
         </div>
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={data} margin={{top:5,right:5,left:-10,bottom:40}}>
+          <BarChart data={data} style={{overflow:"visible"}} margin={{top:5,right:5,left:-10,bottom:40}}>
             <defs>
               {data.map((_:any,i:number)=>(
                 <linearGradient key={i} id={`gPerf${dataKey}${i}`} x1="0" y1="0" x2="0" y2="1">
