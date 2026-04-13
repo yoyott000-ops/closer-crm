@@ -6,7 +6,10 @@ export async function GET(req: NextRequest) {
   if (!token) return NextResponse.json({ error: 'Token manquant' }, { status: 401 })
 
   try {
-    const auth = new google.auth.OAuth2()
+    const auth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+    )
     auth.setCredentials({ access_token: token })
 
     const calendar = google.calendar({ version: 'v3', auth })
@@ -20,7 +23,7 @@ export async function GET(req: NextRequest) {
       timeMax: end.toISOString(),
       singleEvents: true,
       orderBy: 'startTime',
-      maxResults: 100,
+      maxResults: 250,
     })
 
     const events = (res.data.items || []).map(e => ({
@@ -33,7 +36,9 @@ export async function GET(req: NextRequest) {
     }))
 
     return NextResponse.json({ events })
-  } catch (err) {
-    return NextResponse.json({ error: 'Erreur Google Calendar' }, { status: 500 })
+  } catch (err: any) {
+    const detail = err?.response?.data || err?.message || 'Erreur inconnue'
+    console.error('Google Calendar error:', detail)
+    return NextResponse.json({ error: 'Erreur Google Calendar', detail }, { status: 500 })
   }
 }
