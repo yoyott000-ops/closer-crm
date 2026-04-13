@@ -36,6 +36,9 @@ const STATUTS: Record<string, { label:string; color:string; bg:string; dot:strin
   no_show:       { label:"No Show",       color:C.muted,  bg:"rgba(136,136,136,.1)", dot:C.muted  },
   call_done:     { label:"Call Done",     color:C.blue,   bg:"rgba(59,130,246,.1)",  dot:C.blue   },
   offer_pitched: { label:"Offre Pitchée", color:C.amber,  bg:"rgba(245,158,11,.1)",  dot:C.amber  },
+  rdv2:          { label:"RDV 2",         color:"#06b6d4", bg:"rgba(6,182,212,.1)",  dot:"#06b6d4"},
+  rdv3:          { label:"RDV 3",         color:"#8b5cf6", bg:"rgba(139,92,246,.1)", dot:"#8b5cf6"},
+  rdv4:          { label:"RDV 4",         color:"#f97316", bg:"rgba(249,115,22,.1)", dot:"#f97316"},
   sale:          { label:"Vente ✓",       color:C.green,  bg:"rgba(34,197,94,.1)",   dot:C.green  },
 };
 
@@ -475,7 +478,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
               const o=offers.find((x:any)=>x.id===c.offerId); const cm=c.paymentType==="one_shot"?commissionDeal(c,getRate(offers,c.offerId,c)):commissionActive(c,getRate(offers,c.offerId,c));
               return(<tr key={c.id} style={{borderTop:`1px solid ${C.border}`}} onMouseEnter={(e:any)=>e.currentTarget.style.background=C.card2} onMouseLeave={(e:any)=>e.currentTarget.style.background="transparent"}>
                 <td style={{padding:"11px 14px"}}><div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>{c.email&&<div style={{fontSize:10,color:C.muted2}}>{c.email}</div>}</td>
-                <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}</td>
+                <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}{c.nextCallDate&&["rdv2","rdv3","rdv4"].includes(c.status)&&<div style={{fontSize:10,color:"#06b6d4",marginTop:2}}>→ {fmtD(c.nextCallDate)}</div>}</td>
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px"}}><Badge status={c.status}/></td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.prixAccompagnement>0?C.white:C.muted2,fontFamily:SANS}}>{c.prixAccompagnement>0?fmt(c.prixAccompagnement):"—"}</td>
@@ -498,6 +501,11 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
           <FLabel label="Email" half><input style={inp} value={form.email} onChange={(e:any)=>setF("email",e.target.value)} placeholder="jean@email.com"/></FLabel>
           <FLabel label="Offre" half><select style={selInp} value={form.offerId} onChange={(e:any)=>setF("offerId",e.target.value)}><option value="">— Sans offre —</option>{offers.map((o:any)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></FLabel>
           <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setF("status",e.target.value)}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
+          {["rdv2","rdv3","rdv4"].includes(form.status)&&(
+            <FLabel label={`📅 Date prochain RDV (${STATUTS[form.status]?.label})`}>
+              <input type="date" style={inp} value={form.nextCallDate||""} onChange={(e:any)=>setF("nextCallDate",e.target.value)}/>
+            </FLabel>
+          )}
           {isPitched&&<>
             <Sep label="Deal"/>
             <FLabel label="Prix accompagnement (€) *" hint="Prix réel vendu"><input type="number" style={inp} value={form.prixAccompagnement} onChange={(e:any)=>setF("prixAccompagnement",+e.target.value)} placeholder="3000"/></FLabel>
