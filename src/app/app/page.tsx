@@ -1567,7 +1567,16 @@ export default function Home(){
 
   return(
     <div style={{display:"flex",height:"100vh",fontFamily:SANS,background:C.bg,overflow:"hidden",color:C.white}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:${C.bg};font-family:${SANS};}button,input,select,textarea{font-family:${SANS};}input[type=number]{-moz-appearance:textfield;}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}input:focus,select:focus,textarea:focus{border-color:${C.red}!important;box-shadow:0 0 0 3px rgba(230,53,53,.1)!important;outline:none;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border2};border-radius:99px;}::-webkit-scrollbar-thumb:hover{background:${C.border3};}input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}::selection{background:rgba(230,53,53,.2);}button{transition:all .15s ease;}a{transition:opacity .15s;}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:${C.bg};font-family:${SANS};}button,input,select,textarea{font-family:${SANS};}input[type=number]{-moz-appearance:textfield;}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}input:focus,select:focus,textarea:focus{border-color:${C.red}!important;box-shadow:0 0 0 3px rgba(230,53,53,.1)!important;outline:none;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border2};border-radius:99px;}::-webkit-scrollbar-thumb:hover{background:${C.border3};}input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}::selection{background:rgba(230,53,53,.2);}button{transition:all .15s ease;}a{transition:opacity .15s;}
+@media(max-width:768px){
+  aside{display:none!important;}
+  main{padding:16px 12px 90px!important;}
+  .g4{grid-template-columns:repeat(2,1fr)!important;}
+  .g2{grid-template-columns:1fr!important;}
+}
+@media(min-width:769px){
+  .mobnav{display:none!important;}
+}`}</style>
       <aside style={{width:232,background:C.surface,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,position:"relative"}}>
         <div style={{padding:"20px 18px",borderBottom:`1px solid ${C.border}`}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -1606,6 +1615,17 @@ export default function Home(){
   await supabase.from("profiles").upsert({id:user?.id,calendly_url:url},{onConflict:"id"});
 }}/>}
       </main>
+      <div className="mobnav" style={{position:"fixed",bottom:0,left:0,right:0,background:C.surface,borderTop:`1px solid ${C.border}`,zIndex:200,display:"flex",paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
+        {(["dashboard|Dashboard","calls|Appels","analytics|Stats","paiements|Paiements","agenda|Agenda"] as string[]).map(s=>{
+          const [id,l]=s.split("|");
+          return(
+            <button key={id} onClick={()=>setPage(id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"transparent",border:"none",cursor:"pointer",padding:"10px 0",color:page===id?C.red:C.muted,fontFamily:SANS,fontSize:9,fontWeight:500}}>
+              <span style={{marginBottom:2}}>{id==="dashboard"?"▦":id==="calls"?"✆":id==="analytics"?"▲":id==="paiements"?"▣":"▤"}</span>
+              {l}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
