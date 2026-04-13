@@ -423,7 +423,7 @@ function DashboardPage({calls,offers}:any){
 function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [search,setSearch]=useState(""); const [statusF,setStatusF]=useState("all"); const [offerF,setOfferF]=useState("all");
   const [show,setShow]=useState(false); const [edit,setEdit]=useState<any>(null);
-  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
+  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",fathomUrl:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
@@ -476,6 +476,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{cm>0?<span style={{background:`${C.red}18`,color:C.redText,padding:"2px 8px",borderRadius:4,fontSize:11,fontWeight:800,fontFamily:SANS}}>{fmt(cm)}/m</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}><div style={{display:"flex",gap:5,justifyContent:"flex-end"}}>
+                  {c.fathomUrl&&<a href={c.fathomUrl} target="_blank" rel="noopener noreferrer" style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.blue,cursor:"pointer",fontFamily:SANS,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>🎙 Fathom</a>}
                   <button onClick={()=>openEdit(c)} style={{background:C.card2,border:`1px solid ${C.border2}`,borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.muted,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>Éditer</button>
                   <button onClick={()=>{if(window.confirm("Supprimer ?"))onDelete(c.id);}} style={{background:`rgba(230,53,53,.06)`,border:`1px solid rgba(230,53,53,.2)`,borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.redText,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>✕</button>
                 </div></td>
@@ -516,6 +517,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
             {isSale&&<><Sep label="Encaissement"/><FLabel label="Cash collecté (€)" hint="Déjà encaissé"><input type="number" style={inp} value={form.cashCollecte} onChange={(e:any)=>setF("cashCollecte",+e.target.value)} placeholder="500"/></FLabel></>}
           </>}
           <FLabel label="Objection principale"><select style={selInp} value={form.objection||""} onChange={(e:any)=>setF("objection",e.target.value)}><option value="">— Aucune —</option>{OBJECTIONS.map((o:any)=><option key={o.v} value={o.v}>{o.l}</option>)}</select></FLabel><FLabel label="Notes"><textarea style={{...inp,resize:"vertical",minHeight:64}} value={form.notes} onChange={(e:any)=>setF("notes",e.target.value)} placeholder="Next steps..."/></FLabel>
+          <FLabel label="🎙 Lien Fathom"><input style={inp} value={form.fathomUrl||""} onChange={(e:any)=>setF("fathomUrl",e.target.value)} placeholder="https://fathom.video/calls/..."/></FLabel>
           <div style={{display:"flex",gap:8,width:"100%",marginTop:4}}>
             <button onClick={submit} style={{flex:1,background:C.red,color:C.white,border:"none",borderRadius:8,padding:"11px 0",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:SANS,letterSpacing:.1,transition:"all .15s",boxShadow:`0 2px 8px rgba(230,53,53,.25)`}}>{edit?"Mettre à jour":"Enregistrer"}</button>
             <button onClick={()=>setShow(false)} style={{padding:"11px 18px",border:`1px solid ${C.border}`,borderRadius:8,background:"transparent",color:C.muted,fontSize:12,fontWeight:400,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>Annuler</button>
@@ -1422,7 +1424,7 @@ export default function Home(){
       })));
       if(callsRes.data) setCalls(callsRes.data.map((c:any)=>({
         id:c.id, date:c.date, prospect:c.prospect, email:c.email||"",
-        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"",
+        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"", fathomUrl:c.fathom_url||"",
         prixAccompagnement:Number(c.prix_accompagnement||0), paymentType:c.payment_type||"one_shot",
         nombreMensualites:Number(c.nombre_mensualites||1), mensualite:Number(c.mensualite||0),
         mensualitesPayees:Number(c.mensualites_payees||0), mensualitesRestantes:Number(c.mensualites_restantes||0),
@@ -1487,7 +1489,7 @@ export default function Home(){
     if(!user) return;
     const {data}=await supabase.from("calls").insert([{
       user_id:user.id, date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"", fathom_url:f.fathomUrl||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1500,7 +1502,7 @@ export default function Home(){
     if(!user) return;
     await supabase.from("calls").update({
       date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"", fathom_url:f.fathomUrl||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1567,16 +1569,7 @@ export default function Home(){
 
   return(
     <div style={{display:"flex",height:"100vh",fontFamily:SANS,background:C.bg,overflow:"hidden",color:C.white}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:${C.bg};font-family:${SANS};}button,input,select,textarea{font-family:${SANS};}input[type=number]{-moz-appearance:textfield;}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}input:focus,select:focus,textarea:focus{border-color:${C.red}!important;box-shadow:0 0 0 3px rgba(230,53,53,.1)!important;outline:none;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border2};border-radius:99px;}::-webkit-scrollbar-thumb:hover{background:${C.border3};}input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}::selection{background:rgba(230,53,53,.2);}button{transition:all .15s ease;}a{transition:opacity .15s;}
-@media(max-width:768px){
-  aside{display:none!important;}
-  main{padding:16px 12px 90px!important;}
-  .g4{grid-template-columns:repeat(2,1fr)!important;}
-  .g2{grid-template-columns:1fr!important;}
-}
-@media(min-width:769px){
-  .mobnav{display:none!important;}
-}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');*{box-sizing:border-box;}body{margin:0;background:${C.bg};font-family:${SANS};}button,input,select,textarea{font-family:${SANS};}input[type=number]{-moz-appearance:textfield;}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}input:focus,select:focus,textarea:focus{border-color:${C.red}!important;box-shadow:0 0 0 3px rgba(230,53,53,.1)!important;outline:none;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:${C.border2};border-radius:99px;}::-webkit-scrollbar-thumb:hover{background:${C.border3};}input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);}::selection{background:rgba(230,53,53,.2);}button{transition:all .15s ease;}a{transition:opacity .15s;}`}</style>
       <aside style={{width:232,background:C.surface,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,position:"relative"}}>
         <div style={{padding:"20px 18px",borderBottom:`1px solid ${C.border}`}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -1615,17 +1608,6 @@ export default function Home(){
   await supabase.from("profiles").upsert({id:user?.id,calendly_url:url},{onConflict:"id"});
 }}/>}
       </main>
-      <div className="mobnav" style={{position:"fixed",bottom:0,left:0,right:0,background:C.surface,borderTop:`1px solid ${C.border}`,zIndex:200,display:"flex",paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
-        {(["dashboard|Dashboard","calls|Appels","analytics|Stats","paiements|Paiements","agenda|Agenda"] as string[]).map(s=>{
-          const [id,l]=s.split("|");
-          return(
-            <button key={id} onClick={()=>setPage(id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"transparent",border:"none",cursor:"pointer",padding:"10px 0",color:page===id?C.red:C.muted,fontFamily:SANS,fontSize:9,fontWeight:500}}>
-              <span style={{marginBottom:2}}>{id==="dashboard"?"▦":id==="calls"?"✆":id==="analytics"?"▲":id==="paiements"?"▣":"▤"}</span>
-              {l}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }
