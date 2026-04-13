@@ -484,7 +484,25 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px"}}><div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>{c.email&&<div style={{fontSize:10,color:C.muted2}}>{c.email}</div>}</td>
                 <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}{c.rdvSuivi&&c.nextCallDate&&<div style={{fontSize:10,color:"#06b6d4",marginTop:2,fontWeight:600}}>{c.rdvSuivi.toUpperCase()} → {fmtD(c.nextCallDate)}</div>}</td>
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
-                <td style={{padding:"11px 14px"}}><Badge status={c.status}/></td>
+                <td style={{padding:"11px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                  <Badge status={c.status}/>
+                  <select
+                    value={c.rdvSuivi||""}
+                    onChange={async(e:any)=>{
+                      const v=e.target.value;
+                      await onUpdate(c.id,{...c,rdvSuivi:v});
+                    }}
+                    style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.blue,cursor:"pointer",fontFamily:SANS,outline:"none",appearance:"none",WebkitAppearance:"none"}}
+                  >
+                    <option value="">+ Suivi</option>
+                    <option value="rdv2">RDV 2</option>
+                    <option value="rdv3">RDV 3</option>
+                    <option value="rdv4">RDV 4</option>
+                  </select>
+                  {c.rdvSuivi&&<span style={{fontSize:10,fontWeight:700,color:"#06b6d4",background:"rgba(6,182,212,.1)",padding:"2px 7px",borderRadius:4,border:"1px solid rgba(6,182,212,.2)"}}>{c.rdvSuivi.toUpperCase()}</span>}
+                </div>
+              </td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.prixAccompagnement>0?C.white:C.muted2,fontFamily:SANS}}>{c.prixAccompagnement>0?fmt(c.prixAccompagnement):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.mensualite>0&&c.paymentType==="monthly"?C.blue:C.muted2,fontFamily:SANS}}>{c.mensualite>0&&c.paymentType==="monthly"?fmt(c.mensualite):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
