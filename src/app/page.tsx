@@ -204,7 +204,7 @@ export default function Landing() {
             <div style={{textAlign:"center", marginBottom:40}}>
               <h2 style={{fontSize:"clamp(24px, 3vw, 40px)", fontWeight:800, letterSpacing:-1.2}}>Tout en un seul dashboard.</h2>
             </div>
-            <div style={{background:C.surface, border:`1px solid ${C.border}`, borderRadius:20, padding:32, position:"relative", overflow:"hidden"}}>
+            <div className="preview-wrap" style={{background:C.surface, border:`1px solid ${C.border}`, borderRadius:20, padding:32, position:"relative", overflow:"hidden"}}>
               <div style={{position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,${C.red},transparent)`}}/>
               <div style={{display:"flex", alignItems:"center", gap:8, marginBottom:24}}>
                 <div style={{width:10, height:10, borderRadius:"50%", background:"#ff5f57"}}/>
