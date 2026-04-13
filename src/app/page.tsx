@@ -113,7 +113,7 @@ export default function Landing() {
             <span style={{fontSize:16, fontWeight:700, letterSpacing:-.3}}>Kloze</span>
           </div>
           <div style={{display:"flex", gap:8, alignItems:"center"}}>
-            <a href="/auth" className="btn-ghost" style={{padding:"8px 18px", fontSize:13}}>Se connecter</a>
+            <a href="/auth" className="btn-ghost btn-ghost-nav" style={{padding:"8px 18px", fontSize:13}}>Se connecter</a>
             <a href="/auth" className="btn-primary" style={{padding:"8px 18px", fontSize:13}}>Essai gratuit</a>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function Landing() {
             Kloze centralise tes appels, tes deals et tes commissions en temps réel. Fini les fichiers Excel, fini les doutes — juste tes chiffres, clairs et nets.
           </p>
 
-          <div style={{display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginBottom:64}}>
+          <div style={{display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap", marginBottom:64}} className="hero-ctas">
             <a href="/auth" className="btn-primary" style={{fontSize:16, padding:"16px 36px"}}>Commencer gratuitement →</a>
             <a href="#features" className="btn-ghost" style={{fontSize:16, padding:"16px 36px"}}>Voir les fonctionnalités</a>
           </div>
@@ -158,7 +158,7 @@ export default function Landing() {
 
       {/* STATS */}
       <section style={{padding:"0 24px 80px"}}>
-        <div style={{maxWidth:1100, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, background:C.border, borderRadius:16, overflow:"hidden"}}>
+        <div style={{maxWidth:1100, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, background:C.border, borderRadius:16, overflow:"hidden"}} className="g4">
           {STATS.map((s,i) => (
             <AnimatedSection key={i} delay={i*80}>
               <div style={{background:C.surface, padding:"32px 24px", textAlign:"center"}}>
@@ -181,7 +181,7 @@ export default function Landing() {
             </div>
           </AnimatedSection>
 
-          <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:1, background:C.border, borderRadius:16, overflow:"hidden"}}>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:1, background:C.border, borderRadius:16, overflow:"hidden"}} className="g3">
             {FEATURES.map((f,i) => (
               <AnimatedSection key={i} delay={i*60}>
                 <div style={{background:C.surface, padding:"32px 28px", height:"100%", transition:"background .2s"}}
@@ -212,7 +212,7 @@ export default function Landing() {
                 <div style={{width:10, height:10, borderRadius:"50%", background:"#28c840"}}/>
                 <span style={{fontSize:12, color:C.muted, marginLeft:8}}>kloze.vercel.app</span>
               </div>
-              <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:12}}>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:12}} className="g4">
                 {[["Cash Collecté","12 400 €",C.green],["Comm. Active","1 240 €",C.red],["Closing Rate","33%",C.blue],["Show-up Rate","78%",C.amber]].map(([l,v,c]:any,i) => (
                   <div key={i} style={{background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px"}}>
                     <div style={{fontSize:10, color:C.muted, fontWeight:500, letterSpacing:.3, marginBottom:8, textTransform:"uppercase"}}>{l}</div>
@@ -220,7 +220,7 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
+              <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}} className="g2">
                 {["Cash collecté / jour","Taux de closing"].map((title, i) => (
                   <div key={i} style={{background:C.card, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px"}}>
                     <div style={{fontSize:10, color:C.muted, fontWeight:500, letterSpacing:.3, marginBottom:12, textTransform:"uppercase"}}>{title}</div>
@@ -246,7 +246,7 @@ export default function Landing() {
               <h2 style={{fontSize:"clamp(28px, 4vw, 44px)", fontWeight:800, letterSpacing:-1.5}}>Ce que disent les closers</h2>
             </div>
           </AnimatedSection>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16}}>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16}} className="g3">
             {TESTIMONIALS.map((t,i) => (
               <AnimatedSection key={i} delay={i*100}>
                 <div style={{background:C.surface, border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 24px", height:"100%", position:"relative"}}>
