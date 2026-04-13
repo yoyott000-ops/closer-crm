@@ -27,6 +27,7 @@ const OBJECTIONS=[
   {v:"reflechir",        l:"Besoin de reflechir",  color:"#3b82f6"},
   {v:"partenaire",       l:"Parler au partenaire", color:"#10b981"},
   {v:"pas_besoin",       l:"Pas de besoin",        color:"#64748b"},
+  {v:"logistique",       l:"Logistique",           color:"#06b6d4"},
   {v:"autre",            l:"Autre",                color:"#777777"},
 ];
 
