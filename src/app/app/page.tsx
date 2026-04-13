@@ -1489,7 +1489,7 @@ export default function Home(){
     if(!user) return;
     const {data}=await supabase.from("calls").insert([{
       user_id:user.id, date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"", fathom_url:f.fathomUrl||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1502,7 +1502,7 @@ export default function Home(){
     if(!user) return;
     await supabase.from("calls").update({
       date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"", fathom_url:f.fathomUrl||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", fathom_url:f.fathomUrl||"", objection:f.objection||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
