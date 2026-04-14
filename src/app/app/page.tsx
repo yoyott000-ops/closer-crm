@@ -27,7 +27,6 @@ const OBJECTIONS=[
   {v:"reflechir",        l:"Besoin de reflechir",  color:"#3b82f6"},
   {v:"partenaire",       l:"Parler au partenaire", color:"#10b981"},
   {v:"pas_besoin",       l:"Pas de besoin",        color:"#64748b"},
-  {v:"logistique",       l:"Logistique",           color:"#06b6d4"},
   {v:"autre",            l:"Autre",                color:"#777777"},
 ];
 
@@ -38,13 +37,6 @@ const STATUTS: Record<string, { label:string; color:string; bg:string; dot:strin
   offer_pitched: { label:"Offre Pitchée", color:C.amber,  bg:"rgba(245,158,11,.1)",  dot:C.amber  },
   sale:          { label:"Vente ✓",       color:C.green,  bg:"rgba(34,197,94,.1)",   dot:C.green  },
 };
-
-const RDV_SUIVI = [
-  {v:"",    l:"— Aucun suivi —"},
-  {v:"rdv2",l:"RDV 2"},
-  {v:"rdv3",l:"RDV 3"},
-  {v:"rdv4",l:"RDV 4"},
-];
 
 const defaultOffers = [
   { id:"o1", name:"Formation Closing Elite", price:2900, type:"one_shot", commission:10, commissionBonus:15 },
@@ -435,12 +427,6 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
-    // Auto-fill price when offer is selected
-    if(k==="offerId"&&v){
-      const selectedOffer=offers.find((o:any)=>o.id===v);
-      if(selectedOffer&&!f.prixAccompagnement) u.prixAccompagnement=selectedOffer.price;
-      if(selectedOffer) u.paymentType=selectedOffer.type;
-    }
     const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
     if(type==="monthly"&&prix>0&&nbM>0){
       const restant=Math.max(0,prix-Number(u.cashCollecte||0));
@@ -482,27 +468,9 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
               const o=offers.find((x:any)=>x.id===c.offerId); const cm=c.paymentType==="one_shot"?commissionDeal(c,getRate(offers,c.offerId,c)):commissionActive(c,getRate(offers,c.offerId,c));
               return(<tr key={c.id} style={{borderTop:`1px solid ${C.border}`}} onMouseEnter={(e:any)=>e.currentTarget.style.background=C.card2} onMouseLeave={(e:any)=>e.currentTarget.style.background="transparent"}>
                 <td style={{padding:"11px 14px"}}><div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>{c.email&&<div style={{fontSize:10,color:C.muted2}}>{c.email}</div>}</td>
-                <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}{c.rdvSuivi&&c.nextCallDate&&<div style={{fontSize:10,color:"#06b6d4",marginTop:2,fontWeight:600}}>{c.rdvSuivi.toUpperCase()} → {fmtD(c.nextCallDate)}</div>}</td>
+                <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}</td>
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
-                <td style={{padding:"11px 14px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                  <Badge status={c.status}/>
-                  <select
-                    value={c.rdvSuivi||""}
-                    onChange={async(e:any)=>{
-                      const v=e.target.value;
-                      await onUpdate(c.id,{...c,rdvSuivi:v});
-                    }}
-                    style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.blue,cursor:"pointer",fontFamily:SANS,outline:"none",appearance:"none",WebkitAppearance:"none"}}
-                  >
-                    <option value="">+ Suivi</option>
-                    <option value="rdv2">RDV 2</option>
-                    <option value="rdv3">RDV 3</option>
-                    <option value="rdv4">RDV 4</option>
-                  </select>
-                  {c.rdvSuivi&&<span style={{fontSize:10,fontWeight:700,color:"#06b6d4",background:"rgba(6,182,212,.1)",padding:"2px 7px",borderRadius:4,border:"1px solid rgba(6,182,212,.2)"}}>{c.rdvSuivi.toUpperCase()}</span>}
-                </div>
-              </td>
+                <td style={{padding:"11px 14px"}}><Badge status={c.status}/></td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.prixAccompagnement>0?C.white:C.muted2,fontFamily:SANS}}>{c.prixAccompagnement>0?fmt(c.prixAccompagnement):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.mensualite>0&&c.paymentType==="monthly"?C.blue:C.muted2,fontFamily:SANS}}>{c.mensualite>0&&c.paymentType==="monthly"?fmt(c.mensualite):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
@@ -523,7 +491,6 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
           <FLabel label="Email" half><input style={inp} value={form.email} onChange={(e:any)=>setF("email",e.target.value)} placeholder="jean@email.com"/></FLabel>
           <FLabel label="Offre" half><select style={selInp} value={form.offerId} onChange={(e:any)=>setF("offerId",e.target.value)}><option value="">— Sans offre —</option>{offers.map((o:any)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></FLabel>
           <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setF("status",e.target.value)}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
-
           {isPitched&&<>
             <Sep label="Deal"/>
             <FLabel label="Prix accompagnement (€) *" hint="Prix réel vendu"><input type="number" style={inp} value={form.prixAccompagnement} onChange={(e:any)=>setF("prixAccompagnement",+e.target.value)} placeholder="3000"/></FLabel>
@@ -548,18 +515,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
             </>}
             {isSale&&<><Sep label="Encaissement"/><FLabel label="Cash collecté (€)" hint="Déjà encaissé"><input type="number" style={inp} value={form.cashCollecte} onChange={(e:any)=>setF("cashCollecte",+e.target.value)} placeholder="500"/></FLabel></>}
           </>}
-          <FLabel label="Objection principale"><select style={selInp} value={form.objection||""} onChange={(e:any)=>setF("objection",e.target.value)}><option value="">— Aucune —</option>{OBJECTIONS.map((o:any)=><option key={o.v} value={o.v}>{o.l}</option>)}</select></FLabel>
-          {edit&&<>
-            <div style={{width:"100%",display:"flex",alignItems:"center",gap:12,margin:"6px 0"}}><div style={{flex:1,height:1,background:C.border}}/><span style={{fontSize:10,fontWeight:500,color:C.muted,textTransform:"uppercase",letterSpacing:1,fontFamily:SANS}}>Suivi RDV</span><div style={{flex:1,height:1,background:C.border}}/></div>
-            <FLabel label="Prochain RDV" half>
-              <select style={selInp} value={form.rdvSuivi||""} onChange={(e:any)=>setF("rdvSuivi",e.target.value)}>
-                {RDV_SUIVI.map((r:any)=><option key={r.v} value={r.v}>{r.l}</option>)}
-              </select>
-            </FLabel>
-            {form.rdvSuivi&&<FLabel label="📅 Date prochain call" half>
-              <input type="date" style={inp} value={form.nextCallDate||""} onChange={(e:any)=>setF("nextCallDate",e.target.value)}/>
-            </FLabel>}
-          </>}<FLabel label="Notes"><textarea style={{...inp,resize:"vertical",minHeight:64}} value={form.notes} onChange={(e:any)=>setF("notes",e.target.value)} placeholder="Next steps..."/></FLabel>
+          <FLabel label="Objection principale"><select style={selInp} value={form.objection||""} onChange={(e:any)=>setF("objection",e.target.value)}><option value="">— Aucune —</option>{OBJECTIONS.map((o:any)=><option key={o.v} value={o.v}>{o.l}</option>)}</select></FLabel><FLabel label="Notes"><textarea style={{...inp,resize:"vertical",minHeight:64}} value={form.notes} onChange={(e:any)=>setF("notes",e.target.value)} placeholder="Next steps..."/></FLabel>
           <div style={{display:"flex",gap:8,width:"100%",marginTop:4}}>
             <button onClick={submit} style={{flex:1,background:C.red,color:C.white,border:"none",borderRadius:8,padding:"11px 0",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:SANS,letterSpacing:.1,transition:"all .15s",boxShadow:`0 2px 8px rgba(230,53,53,.25)`}}>{edit?"Mettre à jour":"Enregistrer"}</button>
             <button onClick={()=>setShow(false)} style={{padding:"11px 18px",border:`1px solid ${C.border}`,borderRadius:8,background:"transparent",color:C.muted,fontSize:12,fontWeight:400,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>Annuler</button>
