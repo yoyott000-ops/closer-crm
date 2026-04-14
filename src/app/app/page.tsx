@@ -423,7 +423,7 @@ function DashboardPage({calls,offers}:any){
 function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [search,setSearch]=useState(""); const [statusF,setStatusF]=useState("all"); const [offerF,setOfferF]=useState("all");
   const [show,setShow]=useState(false); const [edit,setEdit]=useState<any>(null);
-  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",rdvSuivi:"",nextCallDate:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
+  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
@@ -470,28 +470,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px"}}><div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>{c.email&&<div style={{fontSize:10,color:C.muted2}}>{c.email}</div>}</td>
                 <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}</td>
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
-                <td style={{padding:"11px 14px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                  <Badge status={c.status}/>
-                  <select
-                    value={c.rdvSuivi||""}
-                    onChange={async(e:any)=>{await onUpdate(c.id,{...c,rdvSuivi:e.target.value});}}
-                    style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.blue,cursor:"pointer",fontFamily:SANS,outline:"none",appearance:"none",WebkitAppearance:"none"}}
-                  >
-                    <option value="">+ Suivi</option>
-                    <option value="rdv2">RDV 2</option>
-                    <option value="rdv3">RDV 3</option>
-                    <option value="rdv4">RDV 4</option>
-                  </select>
-                  {c.rdvSuivi&&<span style={{fontSize:10,fontWeight:700,color:"#06b6d4",background:"rgba(6,182,212,.1)",padding:"2px 7px",borderRadius:4,border:"1px solid rgba(6,182,212,.2)"}}>{c.rdvSuivi.toUpperCase()}</span>}
-                  {c.rdvSuivi&&<input
-                    type="date"
-                    value={c.nextCallDate||""}
-                    onChange={async(e:any)=>{await onUpdate(c.id,{...c,nextCallDate:e.target.value});}}
-                    style={{background:"#1a1a1a",border:"1px solid rgba(6,182,212,.3)",borderRadius:5,padding:"2px 6px",fontSize:10,color:"#06b6d4",fontFamily:SANS,outline:"none",cursor:"pointer"}}
-                  />}
-                </div>
-              </td>
+                <td style={{padding:"11px 14px"}}><Badge status={c.status}/></td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.prixAccompagnement>0?C.white:C.muted2,fontFamily:SANS}}>{c.prixAccompagnement>0?fmt(c.prixAccompagnement):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.mensualite>0&&c.paymentType==="monthly"?C.blue:C.muted2,fontFamily:SANS}}>{c.mensualite>0&&c.paymentType==="monthly"?fmt(c.mensualite):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
@@ -1416,8 +1395,138 @@ function TrialExpiredScreen({onLogout}:any){
     </div>
   );
 }
+
+// ─── Onboarding Component ────────────────────────────────────────────────────
+const ONBOARDING_STEPS = [
+  {
+    title: "👋 Bienvenue sur Kloze !",
+    desc: "Ton CRM de closing personnel. En 2 minutes, on te montre comment tirer le maximum de l'outil.",
+    target: null,
+  },
+  {
+    title: "📊 Dashboard",
+    desc: "Ici tu vois tous tes KPIs en temps réel — cash collecté, commissions actives, taux de closing et show-up rate. Une vue complète de ta performance.",
+    target: "dashboard",
+  },
+  {
+    title: "📞 Appels & Deals",
+    desc: "Log chaque appel ici. Ajoute le statut, l'offre pitchée, le cash collecté et tes notes. Kloze calcule tes commissions automatiquement.",
+    target: "calls",
+  },
+  {
+    title: "💰 Paiements",
+    desc: "Suis tes deals en mensualités. Tu vois exactement combien tu vas toucher chaque mois et quand.",
+    target: "paiements",
+  },
+  {
+    title: "📈 Analytics & Objections",
+    desc: "Analyse ton funnel de conversion, identifie les objections les plus fréquentes et vois quelles offres performent le mieux.",
+    target: "analytics",
+  },
+  {
+    title: "🗓️ Agenda",
+    desc: "Gère tes RDV, reçois des rappels avant chaque call et connecte ton Google Calendar pour tout centraliser.",
+    target: "agenda",
+  },
+  {
+    title: "✅ C'est parti !",
+    desc: "Tu es prêt à utiliser Kloze. Si tu as des questions, explore chaque section — tout est conçu pour être simple et efficace. Bonne chance !",
+    target: null,
+  },
+];
+
+function OnboardingModal({onFinish, onNavigate}:{onFinish:()=>void, onNavigate:(page:string)=>void}){
+  const [step, setStep] = useState(0);
+  const current = ONBOARDING_STEPS[step];
+  const isLast = step === ONBOARDING_STEPS.length - 1;
+  const isFirst = step === 0;
+
+  const next = () => {
+    if(isLast){ onFinish(); return; }
+    const nextStep = ONBOARDING_STEPS[step + 1];
+    if(nextStep.target) onNavigate(nextStep.target);
+    setStep(step + 1);
+  };
+
+  const prev = () => {
+    if(step === 0) return;
+    const prevStep = ONBOARDING_STEPS[step - 1];
+    if(prevStep.target) onNavigate(prevStep.target);
+    else onNavigate("dashboard");
+    setStep(step - 1);
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.75)",backdropFilter:"blur(8px)"}}/>
+      <div style={{position:"relative",background:C.surface,border:`1px solid rgba(230,53,53,.25)`,borderRadius:20,width:"100%",maxWidth:480,margin:"0 16px",boxShadow:"0 24px 64px rgba(0,0,0,.8)",overflow:"hidden"}}>
+        {/* Top accent */}
+        <div style={{height:2,background:`linear-gradient(90deg,${C.red},transparent)`}}/>
+        
+        {/* Progress bar */}
+        <div style={{height:3,background:C.border,position:"relative"}}>
+          <div style={{height:"100%",background:C.red,borderRadius:99,transition:"width .4s ease",width:`${((step+1)/ONBOARDING_STEPS.length)*100}%`}}/>
+        </div>
+
+        <div style={{padding:"32px 32px 28px"}}>
+          {/* Step counter */}
+          <div style={{fontSize:11,fontWeight:700,color:C.red,letterSpacing:1.5,textTransform:"uppercase",marginBottom:16}}>
+            Étape {step+1} / {ONBOARDING_STEPS.length}
+          </div>
+
+          {/* Title */}
+          <h2 style={{fontSize:22,fontWeight:700,color:C.white,fontFamily:SANS,letterSpacing:-.4,margin:"0 0 12px",lineHeight:1.2}}>
+            {current.title}
+          </h2>
+
+          {/* Description */}
+          <p style={{fontSize:14,color:C.off,fontFamily:SANS,lineHeight:1.7,margin:"0 0 32px"}}>
+            {current.desc}
+          </p>
+
+          {/* Buttons */}
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            {!isFirst&&(
+              <button onClick={prev} style={{background:"transparent",border:`1px solid ${C.border2}`,borderRadius:8,padding:"10px 20px",fontSize:13,fontWeight:500,color:C.muted,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}
+                onMouseEnter={(e:any)=>e.currentTarget.style.borderColor=C.border3}
+                onMouseLeave={(e:any)=>e.currentTarget.style.borderColor=C.border2}>
+                ← Retour
+              </button>
+            )}
+            <button onClick={next} style={{flex:1,background:C.red,border:"none",borderRadius:8,padding:"11px 0",fontSize:14,fontWeight:600,color:C.white,cursor:"pointer",fontFamily:SANS,boxShadow:`0 2px 12px rgba(230,53,53,.3)`,transition:"all .15s"}}
+              onMouseEnter={(e:any)=>e.currentTarget.style.opacity=".9"}
+              onMouseLeave={(e:any)=>e.currentTarget.style.opacity="1"}>
+              {isLast ? "Commencer →" : "Suivant →"}
+            </button>
+            {!isLast&&(
+              <button onClick={onFinish} style={{background:"transparent",border:"none",padding:"10px 12px",fontSize:12,fontWeight:400,color:C.muted,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}
+                onMouseEnter={(e:any)=>e.currentTarget.style.color=C.off}
+                onMouseLeave={(e:any)=>e.currentTarget.style.color=C.muted}>
+                Passer
+              </button>
+            )}
+          </div>
+
+          {/* Dots */}
+          <div style={{display:"flex",gap:6,justifyContent:"center",marginTop:20}}>
+            {ONBOARDING_STEPS.map((_,i)=>(
+              <div key={i} onClick={()=>{
+                const s=ONBOARDING_STEPS[i];
+                if(s.target) onNavigate(s.target);
+                else onNavigate("dashboard");
+                setStep(i);
+              }} style={{width:i===step?20:6,height:6,borderRadius:99,background:i===step?C.red:C.border2,transition:"all .3s",cursor:"pointer"}}/>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home(){
   const [page,setPage]=useState("dashboard");
+  const [showOnboarding,setShowOnboarding]=useState(false);
   const [user,setUser]=useState<any>(null);
   const [profile,setProfile]=useState<any>(null);
   const [calendlyUrl,setCalendlyUrl]=useState("");
@@ -1443,7 +1552,7 @@ export default function Home(){
       })));
       if(callsRes.data) setCalls(callsRes.data.map((c:any)=>({
         id:c.id, date:c.date, prospect:c.prospect, email:c.email||"",
-        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"", rdvSuivi:c.rdv_suivi||"", nextCallDate:c.next_call_date||"",
+        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"",
         prixAccompagnement:Number(c.prix_accompagnement||0), paymentType:c.payment_type||"one_shot",
         nombreMensualites:Number(c.nombre_mensualites||1), mensualite:Number(c.mensualite||0),
         mensualitesPayees:Number(c.mensualites_payees||0), mensualitesRestantes:Number(c.mensualites_restantes||0),
@@ -1459,6 +1568,8 @@ export default function Home(){
       setUser(session?.user??null);
       setAuthLoading(false);
       if(!session){ window.location.href='/auth'; return; }
+      const seen = localStorage.getItem(`kloze_onboarding_${session.user.id}`);
+      if(!seen) setShowOnboarding(true);
       // Charge le profil utilisateur
       const {data:profileData}=await supabase.from("profiles").select("*").eq("id",session.user.id).single();
       if(profileData){ setProfile(profileData); if(profileData.calendly_url) setCalendlyUrl(profileData.calendly_url); if(!profileData.trial_started_at) await supabase.from("profiles").update({trial_started_at:new Date().toISOString()}).eq("id",session.user.id); }
@@ -1508,7 +1619,7 @@ export default function Home(){
     if(!user) return;
     const {data}=await supabase.from("calls").insert([{
       user_id:user.id, date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1521,7 +1632,7 @@ export default function Home(){
     if(!user) return;
     await supabase.from("calls").update({
       date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1627,6 +1738,14 @@ export default function Home(){
   await supabase.from("profiles").upsert({id:user?.id,calendly_url:url},{onConflict:"id"});
 }}/>}
       </main>
+      {showOnboarding&&<OnboardingModal
+        onFinish={()=>{
+          setShowOnboarding(false);
+          if(user) localStorage.setItem(`kloze_onboarding_${user.id}`,"done");
+          setPage("dashboard");
+        }}
+        onNavigate={(p:string)=>setPage(p)}
+      />}
     </div>
   );
 }
