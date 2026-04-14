@@ -423,7 +423,7 @@ function DashboardPage({calls,offers}:any){
 function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [search,setSearch]=useState(""); const [statusF,setStatusF]=useState("all"); const [offerF,setOfferF]=useState("all");
   const [show,setShow]=useState(false); const [edit,setEdit]=useState<any>(null);
-  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
+  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",rdvSuivi:"",nextCallDate:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
@@ -470,7 +470,28 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px"}}><div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>{c.email&&<div style={{fontSize:10,color:C.muted2}}>{c.email}</div>}</td>
                 <td style={{padding:"11px 14px",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.date)}</td>
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
-                <td style={{padding:"11px 14px"}}><Badge status={c.status}/></td>
+                <td style={{padding:"11px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                  <Badge status={c.status}/>
+                  <select
+                    value={c.rdvSuivi||""}
+                    onChange={async(e:any)=>{await onUpdate(c.id,{...c,rdvSuivi:e.target.value});}}
+                    style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.blue,cursor:"pointer",fontFamily:SANS,outline:"none",appearance:"none",WebkitAppearance:"none"}}
+                  >
+                    <option value="">+ Suivi</option>
+                    <option value="rdv2">RDV 2</option>
+                    <option value="rdv3">RDV 3</option>
+                    <option value="rdv4">RDV 4</option>
+                  </select>
+                  {c.rdvSuivi&&<span style={{fontSize:10,fontWeight:700,color:"#06b6d4",background:"rgba(6,182,212,.1)",padding:"2px 7px",borderRadius:4,border:"1px solid rgba(6,182,212,.2)"}}>{c.rdvSuivi.toUpperCase()}</span>}
+                  {c.rdvSuivi&&<input
+                    type="date"
+                    value={c.nextCallDate||""}
+                    onChange={async(e:any)=>{await onUpdate(c.id,{...c,nextCallDate:e.target.value});}}
+                    style={{background:"#1a1a1a",border:"1px solid rgba(6,182,212,.3)",borderRadius:5,padding:"2px 6px",fontSize:10,color:"#06b6d4",fontFamily:SANS,outline:"none",cursor:"pointer"}}
+                  />}
+                </div>
+              </td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.prixAccompagnement>0?C.white:C.muted2,fontFamily:SANS}}>{c.prixAccompagnement>0?fmt(c.prixAccompagnement):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right",color:c.mensualite>0&&c.paymentType==="monthly"?C.blue:C.muted2,fontFamily:SANS}}>{c.mensualite>0&&c.paymentType==="monthly"?fmt(c.mensualite):"—"}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
@@ -1552,7 +1573,7 @@ export default function Home(){
       })));
       if(callsRes.data) setCalls(callsRes.data.map((c:any)=>({
         id:c.id, date:c.date, prospect:c.prospect, email:c.email||"",
-        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"",
+        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"", rdvSuivi:c.rdv_suivi||"", nextCallDate:c.next_call_date||"",
         prixAccompagnement:Number(c.prix_accompagnement||0), paymentType:c.payment_type||"one_shot",
         nombreMensualites:Number(c.nombre_mensualites||1), mensualite:Number(c.mensualite||0),
         mensualitesPayees:Number(c.mensualites_payees||0), mensualitesRestantes:Number(c.mensualites_restantes||0),
@@ -1619,7 +1640,7 @@ export default function Home(){
     if(!user) return;
     const {data}=await supabase.from("calls").insert([{
       user_id:user.id, date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1632,7 +1653,7 @@ export default function Home(){
     if(!user) return;
     await supabase.from("calls").update({
       date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"",
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
