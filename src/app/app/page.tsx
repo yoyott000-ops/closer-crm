@@ -27,6 +27,7 @@ const OBJECTIONS=[
   {v:"reflechir",        l:"Besoin de reflechir",  color:"#3b82f6"},
   {v:"partenaire",       l:"Parler au partenaire", color:"#10b981"},
   {v:"pas_besoin",       l:"Pas de besoin",        color:"#64748b"},
+  {v:"logistique",       l:"Logistique",           color:"#06b6d4"},
   {v:"autre",            l:"Autre",                color:"#777777"},
 ];
 
@@ -423,10 +424,16 @@ function DashboardPage({calls,offers}:any){
 function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [search,setSearch]=useState(""); const [statusF,setStatusF]=useState("all"); const [offerF,setOfferF]=useState("all");
   const [show,setShow]=useState(false); const [edit,setEdit]=useState<any>(null);
-  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",rdvSuivi:"",nextCallDate:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
+  const empty:any={date:today(),prospect:"",email:"",offerId:"",status:"booked",notes:"",objection:"",fathomUrl:"",rdvSuivi:"",nextCallDate:"",prixAccompagnement:0,paymentType:"one_shot",nombreMensualites:1,mensualite:0,mensualitesPayees:0,mensualitesRestantes:0,cashCollecte:0,datePaiement:today()};
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
+    // Auto-fill price when offer is selected
+    if(k==="offerId"&&v){
+      const selectedOffer=offers.find((o:any)=>o.id===v);
+      if(selectedOffer&&!f.prixAccompagnement) u.prixAccompagnement=selectedOffer.price;
+      if(selectedOffer) u.paymentType=selectedOffer.type;
+    }
     const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
     if(type==="monthly"&&prix>0&&nbM>0){
       const restant=Math.max(0,prix-Number(u.cashCollecte||0));
@@ -497,6 +504,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{c.paymentType==="monthly"&&c.mensualitesRestantes>0?<span style={{background:"rgba(59,130,246,.12)",color:C.blue,padding:"2px 7px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS}}>{c.mensualitesRestantes}x</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}>{cm>0?<span style={{background:`${C.red}18`,color:C.redText,padding:"2px 8px",borderRadius:4,fontSize:11,fontWeight:800,fontFamily:SANS}}>{fmt(cm)}/m</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px",textAlign:"right"}}><div style={{display:"flex",gap:5,justifyContent:"flex-end"}}>
+                  {c.fathomUrl&&<a href={c.fathomUrl} target="_blank" rel="noopener noreferrer" style={{background:"rgba(59,130,246,.08)",border:"1px solid rgba(59,130,246,.2)",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.blue,cursor:"pointer",fontFamily:SANS,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4}}>🎙 Fathom</a>}
                   <button onClick={()=>openEdit(c)} style={{background:C.card2,border:`1px solid ${C.border2}`,borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.muted,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>Éditer</button>
                   <button onClick={()=>{if(window.confirm("Supprimer ?"))onDelete(c.id);}} style={{background:`rgba(230,53,53,.06)`,border:`1px solid rgba(230,53,53,.2)`,borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:500,color:C.redText,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>✕</button>
                 </div></td>
@@ -537,6 +545,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
             {isSale&&<><Sep label="Encaissement"/><FLabel label="Cash collecté (€)" hint="Déjà encaissé"><input type="number" style={inp} value={form.cashCollecte} onChange={(e:any)=>setF("cashCollecte",+e.target.value)} placeholder="500"/></FLabel></>}
           </>}
           <FLabel label="Objection principale"><select style={selInp} value={form.objection||""} onChange={(e:any)=>setF("objection",e.target.value)}><option value="">— Aucune —</option>{OBJECTIONS.map((o:any)=><option key={o.v} value={o.v}>{o.l}</option>)}</select></FLabel><FLabel label="Notes"><textarea style={{...inp,resize:"vertical",minHeight:64}} value={form.notes} onChange={(e:any)=>setF("notes",e.target.value)} placeholder="Next steps..."/></FLabel>
+          <FLabel label="🎙 Lien Fathom"><input style={inp} value={form.fathomUrl||""} onChange={(e:any)=>setF("fathomUrl",e.target.value)} placeholder="https://fathom.video/calls/..."/></FLabel>
           <div style={{display:"flex",gap:8,width:"100%",marginTop:4}}>
             <button onClick={submit} style={{flex:1,background:C.red,color:C.white,border:"none",borderRadius:8,padding:"11px 0",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:SANS,letterSpacing:.1,transition:"all .15s",boxShadow:`0 2px 8px rgba(230,53,53,.25)`}}>{edit?"Mettre à jour":"Enregistrer"}</button>
             <button onClick={()=>setShow(false)} style={{padding:"11px 18px",border:`1px solid ${C.border}`,borderRadius:8,background:"transparent",color:C.muted,fontSize:12,fontWeight:400,cursor:"pointer",fontFamily:SANS,transition:"all .15s"}}>Annuler</button>
@@ -1545,6 +1554,312 @@ function OnboardingModal({onFinish, onNavigate}:{onFinish:()=>void, onNavigate:(
   );
 }
 
+
+// ─── Facturation Page ─────────────────────────────────────────────────────────
+function FacturationPage({calls, offers, user}:any){
+  const MOIS = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  
+  // Profile state
+  const [profile, setProfile] = useState({
+    nom:"", prenom:"", statut:"Auto-entrepreneur", siret:"", adresse:"", email:"", iban:""
+  });
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  // Clients state  
+  const [clients, setClients] = useState<any[]>([]);
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [newClient, setNewClient] = useState({nom:"", adresse:"", siret:"", email:""});
+
+  // Facture state
+  const [selectedClient, setSelectedClient] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [factureNum, setFactureNum] = useState(1);
+  const [tab, setTab] = useState<"profil"|"clients"|"generer">("profil");
+
+  // Load from localStorage
+  useEffect(()=>{
+    if(!user) return;
+    const p = localStorage.getItem(`kloze_profile_${user.id}`);
+    if(p) setProfile(JSON.parse(p));
+    const c = localStorage.getItem(`kloze_clients_${user.id}`);
+    if(c) setClients(JSON.parse(c));
+    const n = localStorage.getItem(`kloze_facture_num_${user.id}`);
+    if(n) setFactureNum(parseInt(n));
+  },[user]);
+
+  const saveProfile = () => {
+    localStorage.setItem(`kloze_profile_${user.id}`, JSON.stringify(profile));
+    setProfileSaved(true);
+    setTimeout(()=>setProfileSaved(false), 2000);
+  };
+
+  const addClient = () => {
+    if(!newClient.nom) return;
+    const updated = [...clients, {...newClient, id:uid()}];
+    setClients(updated);
+    localStorage.setItem(`kloze_clients_${user.id}`, JSON.stringify(updated));
+    setNewClient({nom:"", adresse:"", siret:"", email:""});
+    setShowClientForm(false);
+  };
+
+  const deleteClient = (id:string) => {
+    const updated = clients.filter((c:any)=>c.id!==id);
+    setClients(updated);
+    localStorage.setItem(`kloze_clients_${user.id}`, JSON.stringify(updated));
+  };
+
+  // Get calls for selected month/year
+  const callsDuMois = useMemo(()=>calls.filter((c:any)=>{
+    const d = new Date(c.date);
+    return d.getMonth()===selectedMonth && d.getFullYear()===selectedYear && c.status==="sale";
+  }),[calls, selectedMonth, selectedYear]);
+
+  const generatePDF = () => {
+    const client = clients.find((c:any)=>c.id===selectedClient);
+    if(!client) return;
+    
+    const numFacture = `${selectedYear}-${String(selectedMonth+1).padStart(2,"0")}-${String(factureNum).padStart(3,"0")}`;
+    const today = new Date().toLocaleDateString("fr-FR");
+    
+    const rows = callsDuMois.map((c:any)=>{
+      const offer = offers.find((o:any)=>o.id===c.offerId);
+      const comm = Math.round(Number(c.cashCollecte||0) * 0.10 * 100)/100;
+      return `${c.prospect}|${offer?.name||"—"}|${Number(c.cashCollecte||0).toFixed(2)}€|${comm.toFixed(2)}€`;
+    });
+    
+    const total = callsDuMois.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100, 0);
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 40px; }
+  .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+  .logo { font-size: 24px; font-weight: bold; color: #e63535; }
+  .infos { font-size: 13px; line-height: 1.6; }
+  .facture-title { font-size: 28px; font-weight: bold; margin: 32px 0 8px; }
+  .meta { font-size: 13px; color: #666; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 12px; text-transform: uppercase; color: #666; }
+  td { padding: 12px 14px; border-bottom: 1px solid #eee; font-size: 13px; }
+  .total-row { font-weight: bold; font-size: 15px; background: #fff8f8; }
+  .total-row td { border-top: 2px solid #e63535; color: #e63535; }
+  .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #999; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+  .partie h3 { font-size: 11px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+  .partie p { font-size: 13px; line-height: 1.7; margin: 0; }
+</style></head><body>
+<div class="header">
+  <div class="logo">Kloze</div>
+  <div class="infos" style="text-align:right">
+    <strong>FACTURE N° ${numFacture}</strong><br>
+    Date : ${today}<br>
+    Période : ${MOIS[selectedMonth]} ${selectedYear}
+  </div>
+</div>
+
+<div class="parties">
+  <div class="partie">
+    <h3>Émetteur</h3>
+    <p><strong>${profile.prenom} ${profile.nom}</strong><br>
+    ${profile.statut}<br>
+    SIRET : ${profile.siret||"—"}<br>
+    ${profile.adresse}<br>
+    ${profile.email}</p>
+  </div>
+  <div class="partie">
+    <h3>Client</h3>
+    <p><strong>${client.nom}</strong><br>
+    SIRET : ${client.siret||"—"}<br>
+    ${client.adresse}<br>
+    ${client.email}</p>
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>Prospect</th><th>Offre</th><th>Montant deal</th><th>Commission (10%)</th></tr></thead>
+  <tbody>
+    ${rows.map(r=>{const [p,o,m,c]=r.split("|");return`<tr><td>${p}</td><td>${o}</td><td>${m}</td><td>${c}</td></tr>`;}).join("")}
+    <tr class="total-row"><td colspan="3"><strong>TOTAL DÛ</strong></td><td><strong>${total.toFixed(2)}€</strong></td></tr>
+  </tbody>
+</table>
+
+${profile.iban?`<p style="font-size:13px;margin-top:24px"><strong>Coordonnées bancaires :</strong> ${profile.iban}</p>`:""}
+
+<div class="footer">
+  ${profile.prenom} ${profile.nom} — ${profile.statut} — SIRET ${profile.siret||"—"}<br>
+  Document généré via Kloze • kloze-io.vercel.app
+</div>
+</body></html>`;
+
+    const blob = new Blob([html], {type:"text/html"});
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url,"_blank");
+    if(win) win.onload = () => { win.print(); };
+    
+    // Increment facture number
+    const nextNum = factureNum + 1;
+    setFactureNum(nextNum);
+    localStorage.setItem(`kloze_facture_num_${user.id}`, String(nextNum));
+  };
+
+  const tabStyle = (t:string) => ({
+    padding:"7px 16px", borderRadius:6, border:"none", cursor:"pointer",
+    fontSize:12, fontWeight:500,
+    background:tab===t?C.red:"transparent",
+    color:tab===t?C.white:C.muted,
+    fontFamily:SANS, transition:"all .15s"
+  });
+
+  return(
+    <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+        <div>
+          <h2 style={{margin:0,fontSize:20,fontWeight:600,color:C.white,fontFamily:SANS,letterSpacing:-.3}}>Facturation</h2>
+          <p style={{margin:"2px 0 0",fontSize:12,color:C.muted,fontFamily:SANS}}>Gérez vos infos, clients et générez vos factures</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",background:C.card,borderRadius:8,padding:3,gap:2,border:`1px solid ${C.border}`,marginBottom:24,width:"fit-content"}}>
+        <button style={tabStyle("profil")} onClick={()=>setTab("profil")}>👤 Mon profil</button>
+        <button style={tabStyle("clients")} onClick={()=>setTab("clients")}>🏢 Mes clients</button>
+        <button style={tabStyle("generer")} onClick={()=>setTab("generer")}>📄 Générer une facture</button>
+      </div>
+
+      {/* PROFIL TAB */}
+      {tab==="profil"&&(
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:28,maxWidth:600}}>
+          <div style={{position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,${C.red}60,transparent)`}}/>
+          </div>
+          <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,marginBottom:20,fontFamily:SANS}}>Informations de facturation</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+            <FLabel label="Prénom" half><input style={inp} value={profile.prenom} onChange={(e:any)=>setProfile({...profile,prenom:e.target.value})} placeholder="Eliott"/></FLabel>
+            <FLabel label="Nom" half><input style={inp} value={profile.nom} onChange={(e:any)=>setProfile({...profile,nom:e.target.value})} placeholder="Van Dieren"/></FLabel>
+            <FLabel label="Statut juridique"><input style={inp} value={profile.statut} onChange={(e:any)=>setProfile({...profile,statut:e.target.value})} placeholder="Auto-entrepreneur"/></FLabel>
+            <FLabel label="SIRET"><input style={inp} value={profile.siret} onChange={(e:any)=>setProfile({...profile,siret:e.target.value})} placeholder="123 456 789 00012"/></FLabel>
+            <FLabel label="Adresse complète"><input style={inp} value={profile.adresse} onChange={(e:any)=>setProfile({...profile,adresse:e.target.value})} placeholder="12 rue de Paris, 75001 Paris"/></FLabel>
+            <FLabel label="Email professionnel"><input style={inp} value={profile.email} onChange={(e:any)=>setProfile({...profile,email:e.target.value})} placeholder="eliott@email.com"/></FLabel>
+            <FLabel label="IBAN (optionnel)"><input style={inp} value={profile.iban} onChange={(e:any)=>setProfile({...profile,iban:e.target.value})} placeholder="FR76 1234 5678 9012 3456 7890 123"/></FLabel>
+          </div>
+          <button onClick={saveProfile} style={{marginTop:20,background:C.red,color:C.white,border:"none",borderRadius:8,padding:"11px 24px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:SANS,boxShadow:`0 2px 8px rgba(230,53,53,.25)`}}>
+            {profileSaved?"✓ Sauvegardé !":"Sauvegarder"}
+          </button>
+        </div>
+      )}
+
+      {/* CLIENTS TAB */}
+      {tab==="clients"&&(
+        <div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <div style={{fontSize:13,color:C.muted,fontFamily:SANS}}>{clients.length} client{clients.length!==1?"s":""}</div>
+            <button onClick={()=>setShowClientForm(!showClientForm)} style={{background:C.red,color:C.white,border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:SANS}}>+ Nouveau client</button>
+          </div>
+
+          {showClientForm&&(
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:24,marginBottom:16}}>
+              <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+                <FLabel label="Nom du client *"><input style={inp} value={newClient.nom} onChange={(e:any)=>setNewClient({...newClient,nom:e.target.value})} placeholder="Reshape Academy"/></FLabel>
+                <FLabel label="Email" half><input style={inp} value={newClient.email} onChange={(e:any)=>setNewClient({...newClient,email:e.target.value})} placeholder="contact@reshape.fr"/></FLabel>
+                <FLabel label="SIRET" half><input style={inp} value={newClient.siret} onChange={(e:any)=>setNewClient({...newClient,siret:e.target.value})} placeholder="123 456 789 00012"/></FLabel>
+                <FLabel label="Adresse"><input style={inp} value={newClient.adresse} onChange={(e:any)=>setNewClient({...newClient,adresse:e.target.value})} placeholder="12 rue de Paris, 75001 Paris"/></FLabel>
+              </div>
+              <div style={{display:"flex",gap:8,marginTop:16}}>
+                <button onClick={addClient} style={{background:C.red,color:C.white,border:"none",borderRadius:8,padding:"10px 20px",fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:SANS}}>Ajouter</button>
+                <button onClick={()=>setShowClientForm(false)} style={{background:"transparent",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 16px",fontSize:12,color:C.muted,cursor:"pointer",fontFamily:SANS}}>Annuler</button>
+              </div>
+            </div>
+          )}
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+            {clients.length===0&&<div style={{gridColumn:"1/-1",background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"48px 0",textAlign:"center",color:C.muted,fontSize:13,fontFamily:SANS}}>Aucun client — ajoutez votre premier client</div>}
+            {clients.map((c:any)=>(
+              <div key={c.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 20px",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,${C.red}50,transparent)`}}/>
+                <div style={{fontSize:15,fontWeight:700,color:C.white,marginBottom:6,fontFamily:SANS}}>{c.nom}</div>
+                {c.email&&<div style={{fontSize:12,color:C.muted,fontFamily:SANS,marginBottom:4}}>{c.email}</div>}
+                {c.siret&&<div style={{fontSize:11,color:C.muted2,fontFamily:SANS,marginBottom:4}}>SIRET : {c.siret}</div>}
+                {c.adresse&&<div style={{fontSize:11,color:C.muted2,fontFamily:SANS,marginBottom:12}}>{c.adresse}</div>}
+                <button onClick={()=>deleteClient(c.id)} style={{background:`${C.red}10`,border:`1px solid ${C.red}30`,borderRadius:6,padding:"4px 10px",fontSize:11,color:C.redText,cursor:"pointer",fontFamily:SANS}}>Supprimer</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* GENERER TAB */}
+      {tab==="generer"&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:28}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,marginBottom:20,fontFamily:SANS}}>Paramètres de la facture</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+              <FLabel label="Client">
+                <select style={selInp} value={selectedClient} onChange={(e:any)=>setSelectedClient(e.target.value)}>
+                  <option value="">— Sélectionner un client —</option>
+                  {clients.map((c:any)=><option key={c.id} value={c.id}>{c.nom}</option>)}
+                </select>
+              </FLabel>
+              <FLabel label="Mois" half>
+                <select style={selInp} value={selectedMonth} onChange={(e:any)=>setSelectedMonth(Number(e.target.value))}>
+                  {MOIS.map((m,i)=><option key={i} value={i}>{m}</option>)}
+                </select>
+              </FLabel>
+              <FLabel label="Année" half>
+                <select style={selInp} value={selectedYear} onChange={(e:any)=>setSelectedYear(Number(e.target.value))}>
+                  {[2024,2025,2026].map(y=><option key={y} value={y}>{y}</option>)}
+                </select>
+              </FLabel>
+              <FLabel label="N° de facture">
+                <input type="number" style={inp} value={factureNum} onChange={(e:any)=>setFactureNum(Number(e.target.value))}/>
+              </FLabel>
+            </div>
+            <button
+              onClick={generatePDF}
+              disabled={!selectedClient||callsDuMois.length===0}
+              style={{marginTop:20,width:"100%",background:selectedClient&&callsDuMois.length>0?C.red:"#333",color:C.white,border:"none",borderRadius:8,padding:"12px 0",fontSize:14,fontWeight:600,cursor:selectedClient&&callsDuMois.length>0?"pointer":"not-allowed",fontFamily:SANS,boxShadow:selectedClient&&callsDuMois.length>0?`0 2px 8px rgba(230,53,53,.25)`:"none"}}>
+              📄 Générer la facture PDF
+            </button>
+            {callsDuMois.length===0&&<div style={{fontSize:11,color:C.muted,marginTop:8,textAlign:"center",fontFamily:SANS}}>Aucune vente ce mois-ci</div>}
+          </div>
+
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:28}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,marginBottom:20,fontFamily:SANS}}>Aperçu — {MOIS[selectedMonth]} {selectedYear}</div>
+            {callsDuMois.length===0?(
+              <div style={{textAlign:"center",padding:"32px 0",color:C.muted,fontSize:13,fontFamily:SANS}}>Aucune vente ce mois</div>
+            ):(
+              <>
+                <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+                  {callsDuMois.map((c:any)=>{
+                    const offer = offers.find((o:any)=>o.id===c.offerId);
+                    const comm = Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+                    return(
+                      <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C.card2,borderRadius:8,fontSize:12}}>
+                        <div>
+                          <div style={{fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</div>
+                          <div style={{fontSize:11,color:C.muted,fontFamily:SANS}}>{offer?.name||"—"}</div>
+                        </div>
+                        <div style={{textAlign:"right"}}>
+                          <div style={{color:C.green,fontWeight:600,fontFamily:SANS}}>{fmt(Number(c.cashCollecte||0))}</div>
+                          <div style={{fontSize:11,color:C.redText,fontFamily:SANS}}>comm. {fmt(comm)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{borderTop:`1px solid ${C.border}`,paddingTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:13,color:C.muted,fontFamily:SANS}}>{callsDuMois.length} vente{callsDuMois.length>1?"s":""}</span>
+                  <span style={{fontSize:18,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(callsDuMois.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100,0))}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home(){
   const [page,setPage]=useState("dashboard");
   const [showOnboarding,setShowOnboarding]=useState(false);
@@ -1573,7 +1888,7 @@ export default function Home(){
       })));
       if(callsRes.data) setCalls(callsRes.data.map((c:any)=>({
         id:c.id, date:c.date, prospect:c.prospect, email:c.email||"",
-        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"", rdvSuivi:c.rdv_suivi||"", nextCallDate:c.next_call_date||"",
+        offerId:c.offer_id||"", status:c.status, notes:c.notes||"", objection:c.objection||"", fathomUrl:c.fathom_url||"", rdvSuivi:c.rdv_suivi||"", nextCallDate:c.next_call_date||"",
         prixAccompagnement:Number(c.prix_accompagnement||0), paymentType:c.payment_type||"one_shot",
         nombreMensualites:Number(c.nombre_mensualites||1), mensualite:Number(c.mensualite||0),
         mensualitesPayees:Number(c.mensualites_payees||0), mensualitesRestantes:Number(c.mensualites_restantes||0),
@@ -1640,7 +1955,7 @@ export default function Home(){
     if(!user) return;
     const {data}=await supabase.from("calls").insert([{
       user_id:user.id, date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", fathom_url:f.fathomUrl||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1653,7 +1968,7 @@ export default function Home(){
     if(!user) return;
     await supabase.from("calls").update({
       date:f.date, prospect:f.prospect, email:f.email||"",
-      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
+      offer_id:f.offerId||null, status:f.status, notes:f.notes||"", objection:f.objection||"", fathom_url:f.fathomUrl||"", rdv_suivi:f.rdvSuivi||"", next_call_date:f.nextCallDate||null,
       prix_accompagnement:f.prixAccompagnement||0, payment_type:f.paymentType||"one_shot",
       nombre_mensualites:f.nombreMensualites||1, mensualite:f.mensualite||0,
       mensualites_payees:f.mensualitesPayees||0, mensualites_restantes:f.mensualitesRestantes||0,
@@ -1705,6 +2020,7 @@ export default function Home(){
     {id:"perfoffres",label:"Par Offre",      icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>'},
     {id:"agenda",    label:"Agenda",         icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'},
     {id:"booking",   label:"Booking",        icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'},
+    {id:"facturation",label:"Facturation",    icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'},
   ];
   if(!authLoading&&user&&profile&&!hasAccess(profile)) return <TrialExpiredScreen onLogout={handleLogout}/>;
   const trialDaysLeft=profile&&profile.role!=="owner"&&!profile.plan_active?getTrialDaysLeft(profile.trial_started_at):null;
@@ -1754,6 +2070,7 @@ export default function Home(){
         {page==="paiements"&&<PaiementsPage calls={calls} offers={offers} onUpdate={updateCall}/>}
         {page==="perfoffres"&&<PerformancesOffresPage calls={calls} offers={offers}/>}
         {page==="agenda"&&<AgendaPage offers={offers} googleEvents={googleEvents} gcalSession={gcalSession}/>}
+        {page==="facturation"&&<FacturationPage calls={calls} offers={offers} user={user}/>}
         {page==="booking"&&<BookingPage calendlyUrl={calendlyUrl} onSaveCalendly={async(url:string)=>{
   setCalendlyUrl(url);
   await supabase.from("profiles").upsert({id:user?.id,calendly_url:url},{onConflict:"id"});
