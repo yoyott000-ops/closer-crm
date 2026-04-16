@@ -1722,9 +1722,9 @@ ${profile.iban?`<p style="font-size:13px;margin-top:24px"><strong>Coordonnées b
 
       {/* Tabs */}
       <div style={{display:"flex",background:C.card,borderRadius:8,padding:3,gap:2,border:`1px solid ${C.border}`,marginBottom:24,width:"fit-content"}}>
-        <button style={tabStyle("profil")} onClick={()=>setTab("profil")}>👤 Mon profil</button>
-        <button style={tabStyle("clients")} onClick={()=>setTab("clients")}>🏢 Mes clients</button>
-        <button style={tabStyle("generer")} onClick={()=>setTab("generer")}>📄 Générer une facture</button>
+        <button style={tabStyle("profil")} onClick={()=>setTab("profil")} dangerouslySetInnerHTML={{__html:`<span style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mon profil</span>`}}/>
+        <button style={tabStyle("clients")} onClick={()=>setTab("clients")} dangerouslySetInnerHTML={{__html:`<span style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Mes clients</span>`}}/>
+        <button style={tabStyle("generer")} onClick={()=>setTab("generer")} dangerouslySetInnerHTML={{__html:`<span style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Générer une facture</span>`}}/>
       </div>
 
       {/* PROFIL TAB */}
@@ -1818,7 +1818,7 @@ ${profile.iban?`<p style="font-size:13px;margin-top:24px"><strong>Coordonnées b
               onClick={generatePDF}
               disabled={!selectedClient||callsDuMois.length===0}
               style={{marginTop:20,width:"100%",background:selectedClient&&callsDuMois.length>0?C.red:"#333",color:C.white,border:"none",borderRadius:8,padding:"12px 0",fontSize:14,fontWeight:600,cursor:selectedClient&&callsDuMois.length>0?"pointer":"not-allowed",fontFamily:SANS,boxShadow:selectedClient&&callsDuMois.length>0?`0 2px 8px rgba(230,53,53,.25)`:"none"}}>
-              📄 Générer la facture PDF
+              Générer la facture PDF
             </button>
             {callsDuMois.length===0&&<div style={{fontSize:11,color:C.muted,marginTop:8,textAlign:"center",fontFamily:SANS}}>Aucune vente ce mois-ci</div>}
           </div>
