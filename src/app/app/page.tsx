@@ -1408,7 +1408,7 @@ function hasAccess(profile:any):boolean{
   if(profile.plan_active) return true;
   return getTrialDaysLeft(profile.trial_started_at)>0;
 }
-function TrialExpiredScreen({onLogout}:any){
+function TrialExpiredScreen({onLogout,user}:any){
   return(
     <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:SANS}}>
       <div style={{textAlign:"center",maxWidth:480,padding:"0 24px"}}>
@@ -1418,7 +1418,14 @@ function TrialExpiredScreen({onLogout}:any){
         <div style={{background:C.card,border:`1px solid rgba(230,53,53,.2)`,borderRadius:16,padding:"28px 32px",marginBottom:20,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${C.red},transparent)`}}/>
           <div style={{fontSize:42,fontWeight:800,color:C.white,letterSpacing:-1.5,lineHeight:1,marginBottom:8}}>29€<span style={{fontSize:16,fontWeight:400,color:C.muted}}>/mois</span></div>
-          <button onClick={()=>window.open("mailto:contact@kloze.io?subject=Abonnement Kloze Pro","_blank")} style={{width:"100%",background:C.red,color:C.white,border:"none",borderRadius:10,padding:"14px 0",fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:`0 4px 16px rgba(230,53,53,.3)`}}>Activer mon abonnement →</button>
+          <button onClick={async()=>{
+              if(!user) return;
+              try{
+                const res=await fetch("/api/stripe/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId:user.id,email:user.email})});
+                const data=await res.json();
+                if(data.url) window.location.href=data.url;
+              }catch(e){console.error(e);}
+            }} style={{width:"100%",background:C.red,color:C.white,border:"none",borderRadius:10,padding:"14px 0",fontSize:14,fontWeight:600,cursor:"pointer",boxShadow:`0 4px 16px rgba(230,53,53,.3)`}}>Activer mon abonnement →</button>
         </div>
         <button onClick={onLogout} style={{background:"transparent",border:"none",color:C.muted,fontSize:12,cursor:"pointer",fontFamily:SANS}}>Se déconnecter</button>
       </div>
@@ -2022,7 +2029,7 @@ export default function Home(){
     {id:"booking",   label:"Booking",        icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'},
     {id:"facturation",label:"Facturation",    icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'},
   ];
-  if(!authLoading&&user&&profile&&!hasAccess(profile)) return <TrialExpiredScreen onLogout={handleLogout}/>;
+  if(!authLoading&&user&&profile&&!hasAccess(profile)) return <TrialExpiredScreen onLogout={handleLogout} user={user}/>;
   const trialDaysLeft=profile&&profile.role!=="owner"&&!profile.plan_active?getTrialDaysLeft(profile.trial_started_at):null;
   if(authLoading) return(
     <div style={{minHeight:"100vh",background:"#080808",display:"flex",alignItems:"center",justifyContent:"center"}}>
