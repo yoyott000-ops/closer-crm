@@ -36,6 +36,7 @@ const STATUTS: Record<string, { label:string; color:string; bg:string; dot:strin
   no_show:       { label:"No Show",       color:C.muted,  bg:"rgba(136,136,136,.1)", dot:C.muted  },
   call_done:     { label:"Call Done",     color:C.blue,   bg:"rgba(59,130,246,.1)",  dot:C.blue   },
   offer_pitched: { label:"Offre Pitchée", color:C.amber,  bg:"rgba(245,158,11,.1)",  dot:C.amber  },
+  pitcher_non_vendu: { label:"Pitché non vendu", color:"#f97316", bg:"rgba(249,115,22,.1)", dot:"#f97316" },
   sale:          { label:"Vente ✓",       color:C.green,  bg:"rgba(34,197,94,.1)",   dot:C.green  },
 };
 
@@ -70,7 +71,18 @@ const defaultCalls = [
 
 function commissionDeal(c:any,rate=RATE):number{ if(c.status!=="sale") return 0; return Math.round(Number(c.cashCollecte||0)*rate*100)/100; }
 function commissionMensuelle(c:any,rate=RATE):number{ if(c.status!=="sale"||c.paymentType!=="monthly") return 0; return Math.round(Number(c.mensualite||0)*rate*100)/100; }
-function commissionActive(c:any,rate=RATE):number{ if(c.status!=="sale"||c.paymentType!=="monthly") return 0; if(!c.mensualitesRestantes||c.mensualitesRestantes<=0) return 0; return commissionMensuelle(c,rate); }
+function commissionActive(c:any,rate=RATE):number{ 
+  if(c.status!=="sale"||c.paymentType!=="monthly") return 0; 
+  if(!c.mensualitesRestantes||c.mensualitesRestantes<=0) return 0;
+  // Only count if deal started this year or still has remaining payments
+  const dealDate = new Date(c.datePaiement||c.date);
+  const now = new Date();
+  const monthsElapsed = (now.getFullYear()-dealDate.getFullYear())*12 + (now.getMonth()-dealDate.getMonth());
+  const mensualitesPayees = Math.max(0, monthsElapsed);
+  const mensualitesRestantesCalc = Math.max(0, (c.nombreMensualites||1) - mensualitesPayees);
+  if(mensualitesRestantesCalc<=0) return 0;
+  return commissionMensuelle(c,rate); 
+}
 function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0); }
 
 function computeKpi(calls:any[],offers:any[]=[]) {
