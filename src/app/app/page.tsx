@@ -346,7 +346,7 @@ function DashboardPage({calls,offers}:any){
           <div style={{fontSize:11,color:C.muted,marginTop:3,fontFamily:SANS}}>{dealsActifs.length} deal{dealsActifs.length!==1?"s":""} actif{dealsActifs.length!==1?"s":""}</div>
         </div>
         <div style={{display:"flex",gap:24}}>
-          {[{l:"Show-up",v:`${kpi.showUpRate}%`,ok:kpi.showUpRate>=70},{l:"Closing",v:`${kpi.closingRate}%`,ok:kpi.closingRate>=20},{l:"Rev/Call",v:fmt(kpi.revenuePerCall),ok:kpi.revenuePerCall>500}].map((s,i)=>(
+          {[{l:"Show-up",v:`${kpi.showUpRate}%`,ok:kpi.showUpRate>=70},{l:"Closing",v:`${kpi.closingRate}%`,ok:kpi.closingRate>=20},{l:"Rev/Vente",v:fmt(kpi.revenuePerCall),ok:kpi.revenuePerCall>500}].map((s,i)=>(
             <div key={i} style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:800,color:s.ok?C.green:C.redText,fontFamily:SANS}}>{s.v}</div><div style={{fontSize:10,color:C.muted,fontFamily:SANS,textTransform:"uppercase",letterSpacing:.8}}>{s.l}</div></div>
           ))}
         </div>
@@ -355,7 +355,7 @@ function DashboardPage({calls,offers}:any){
         <RateCard delay={0}   label="Show-up Rate"    value={kpi.showUpRate}    ok={kpi.showUpRate>=70}    warn={kpi.showUpRate>=50}   sub={`${kpi.effectues}/${kpi.bookes} bookés`}/>
         <RateCard delay={60}  label="Pitch Rate"      value={kpi.pitchRate}     ok={kpi.pitchRate>=60}     warn={kpi.pitchRate>=40}    sub={`${kpi.pitched}/${kpi.effectues} effectués`}/>
         <RateCard delay={120} label="Closing Rate"    value={kpi.closingRate}   ok={kpi.closingRate>=20}   warn={kpi.closingRate>=12}  sub={`${kpi.sales}/${kpi.effectues} effectués`}/>
-        <KpiCard delay={180} label="Revenue/Call" value={fmt(kpi.revenuePerCall)} sub={`${fmt(kpi.cashCollecte)} / ${kpi.effectues} appels`} accent={kpi.revenuePerCall>=800}/>
+        <KpiCard delay={180} label="Rev/Vente" value={fmt(kpi.revenuePerCall)} sub={`${fmt(kpi.cashCollecte)} / ${kpi.effectues} appels`} accent={kpi.revenuePerCall>=800}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
         <KpiCard delay={240} label="Cash Collecté" value={fmt(kpi.cashCollecte)} accent onClick={()=>setDrillDown({title:"Cash Collecté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
@@ -694,7 +694,7 @@ function AnalyticsPage({calls,offers}:any){
           <div style={{fontSize:34,fontWeight:900,color:C.white,fontFamily:SANS,letterSpacing:-1}}>{fmt(commActive)}<span style={{fontSize:14,fontWeight:400,color:C.muted,marginLeft:4}}>/mois</span></div>
         </div>
         <div style={{display:"flex",gap:20}}>
-          {[{l:"Show-up",v:`${kpiAll.showUpRate}%`},{l:"Pitch",v:`${kpiAll.pitchRate}%`},{l:"Closing",v:`${kpiAll.closingRate}%`},{l:"Rev/Call",v:fmt(kpiAll.revenuePerCall)}].map((s,i)=>(
+          {[{l:"Show-up",v:`${kpiAll.showUpRate}%`},{l:"Pitch",v:`${kpiAll.pitchRate}%`},{l:"Closing",v:`${kpiAll.closingRate}%`},{l:"Rev/Vente",v:fmt(kpiAll.revenuePerCall)}].map((s,i)=>(
             <div key={i} style={{textAlign:"center"}}><div style={{fontSize:18,fontWeight:800,color:C.white,fontFamily:SANS}}>{s.v}</div><div style={{fontSize:9,color:C.muted,textTransform:"uppercase",letterSpacing:.8,fontFamily:SANS}}>{s.l}</div></div>
           ))}
         </div>
