@@ -1682,89 +1682,143 @@ function FacturationPage({calls, offers, user}:any){
     return d.getMonth()===selectedMonth && d.getFullYear()===selectedYear && c.status==="sale";
   }),[calls, selectedMonth, selectedYear]);
 
-  const generatePDF = () => {
+  const generatePDF = async() => {
     const client = clients.find((c:any)=>c.id===selectedClient);
     if(!client) return;
     
     const numFacture = `${selectedYear}-${String(selectedMonth+1).padStart(2,"0")}-${String(factureNum).padStart(3,"0")}`;
     const today = new Date().toLocaleDateString("fr-FR");
-    
-    const rows = callsDuMois.map((c:any)=>{
-      const offer = offers.find((o:any)=>o.id===c.offerId);
-      const comm = Math.round(Number(c.cashCollecte||0) * 0.10 * 100)/100;
-      return `${c.prospect}|${offer?.name||"—"}|${Number(c.cashCollecte||0).toFixed(2)}€|${comm.toFixed(2)}€`;
-    });
-    
     const total = callsDuMois.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100, 0);
 
-    const html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<style>
-  body { font-family: Arial, sans-serif; color: #1a1a1a; margin: 0; padding: 40px; }
-  .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-  .logo { font-size: 24px; font-weight: bold; color: #e63535; }
-  .infos { font-size: 13px; line-height: 1.6; }
-  .facture-title { font-size: 28px; font-weight: bold; margin: 32px 0 8px; }
-  .meta { font-size: 13px; color: #666; margin-bottom: 32px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 12px; text-transform: uppercase; color: #666; }
-  td { padding: 12px 14px; border-bottom: 1px solid #eee; font-size: 13px; }
-  .total-row { font-weight: bold; font-size: 15px; background: #fff8f8; }
-  .total-row td { border-top: 2px solid #e63535; color: #e63535; }
-  .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #999; }
-  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
-  .partie h3 { font-size: 11px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
-  .partie p { font-size: 13px; line-height: 1.7; margin: 0; }
-</style></head><body>
-<div class="header">
-  <div class="logo">Kloze</div>
-  <div class="infos" style="text-align:right">
-    <strong>FACTURE N° ${numFacture}</strong><br>
-    Date : ${today}<br>
-    Période : ${MOIS[selectedMonth]} ${selectedYear}
-  </div>
-</div>
-
-<div class="parties">
-  <div class="partie">
-    <h3>Émetteur</h3>
-    <p><strong>${profile.prenom} ${profile.nom}</strong><br>
-    ${profile.statut}<br>
-    SIRET : ${profile.siret||"—"}<br>
-    ${profile.adresse}<br>
-    ${profile.email}</p>
-  </div>
-  <div class="partie">
-    <h3>Client</h3>
-    <p><strong>${client.nom}</strong><br>
-    SIRET : ${client.siret||"—"}<br>
-    ${client.adresse}<br>
-    ${client.email}</p>
-  </div>
-</div>
-
-<table>
-  <thead><tr><th>Prospect</th><th>Offre</th><th>Montant deal</th><th>Commission (10%)</th></tr></thead>
-  <tbody>
-    ${rows.map(r=>{const [p,o,m,c]=r.split("|");return`<tr><td>${p}</td><td>${o}</td><td>${m}</td><td>${c}</td></tr>`;}).join("")}
-    <tr class="total-row"><td colspan="3"><strong>TOTAL DÛ</strong></td><td><strong>${total.toFixed(2)}€</strong></td></tr>
-  </tbody>
-</table>
-
-${profile.iban?`<p style="font-size:13px;margin-top:24px"><strong>Coordonnées bancaires :</strong> ${profile.iban}</p>`:""}
-
-<div class="footer">
-  ${profile.prenom} ${profile.nom} — ${profile.statut} — SIRET ${profile.siret||"—"}<br>
-  Document généré via Kloze • kloze-io.vercel.app
-</div>
-</body></html>`;
-
-    const blob = new Blob([html], {type:"text/html"});
-    const url = URL.createObjectURL(blob);
-    const win = window.open(url,"_blank");
-    if(win) win.onload = () => { win.print(); };
+    // Load jsPDF dynamically
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
     
-    // Increment facture number
+    const pageW = 210;
+    const margin = 20;
+    let y = 20;
+
+    // Header - Logo
+    doc.setFontSize(22);
+    doc.setTextColor(230,53,53);
+    doc.setFont("helvetica","bold");
+    doc.text("Kloze", margin, y);
+
+    // Header - Facture info
+    doc.setFontSize(10);
+    doc.setTextColor(100,100,100);
+    doc.setFont("helvetica","normal");
+    doc.text(`FACTURE N° ${numFacture}`, pageW-margin, y, {align:"right"});
+    y += 5;
+    doc.text(`Date : ${today}`, pageW-margin, y, {align:"right"});
+    y += 5;
+    doc.text(`Période : ${MOIS[selectedMonth]} ${selectedYear}`, pageW-margin, y, {align:"right"});
+    y += 15;
+
+    // Separator
+    doc.setDrawColor(230,53,53);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageW-margin, y);
+    y += 10;
+
+    // Parties
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.setFont("helvetica","bold");
+    doc.text("ÉMETTEUR", margin, y);
+    doc.text("CLIENT", pageW/2+5, y);
+    y += 5;
+
+    doc.setFontSize(10);
+    doc.setTextColor(30,30,30);
+    doc.setFont("helvetica","bold");
+    doc.text(`${profile.prenom} ${profile.nom}`, margin, y);
+    doc.text(client.nom, pageW/2+5, y);
+    y += 5;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    doc.setTextColor(80,80,80);
+    const emetteurLines = [profile.statut, `SIRET: ${profile.siret||"—"}`, profile.adresse, profile.email].filter(Boolean);
+    const clientLines = [`SIRET: ${client.siret||"—"}`, client.adresse, client.email].filter(Boolean);
+    const maxLines = Math.max(emetteurLines.length, clientLines.length);
+    for(let i=0;i<maxLines;i++){
+      if(emetteurLines[i]) doc.text(emetteurLines[i], margin, y);
+      if(clientLines[i]) doc.text(clientLines[i], pageW/2+5, y);
+      y += 4.5;
+    }
+    y += 8;
+
+    // Table header
+    doc.setFillColor(245,245,245);
+    doc.rect(margin, y, pageW-margin*2, 8, "F");
+    doc.setFontSize(8);
+    doc.setTextColor(100,100,100);
+    doc.setFont("helvetica","bold");
+    doc.text("PROSPECT", margin+2, y+5.5);
+    doc.text("OFFRE", margin+55, y+5.5);
+    doc.text("MONTANT", margin+115, y+5.5);
+    doc.text("COMMISSION", margin+148, y+5.5);
+    y += 8;
+
+    // Table rows
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    callsDuMois.forEach((c:any, idx:number)=>{
+      const offer = offers.find((o:any)=>o.id===c.offerId);
+      const comm = Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+      if(idx%2===0){ doc.setFillColor(252,252,252); doc.rect(margin,y,pageW-margin*2,7,"F"); }
+      doc.setTextColor(30,30,30);
+      doc.text(c.prospect.substring(0,22), margin+2, y+5);
+      doc.text((offer?.name||"—").substring(0,25), margin+55, y+5);
+      doc.setTextColor(34,197,94);
+      doc.text(`${Number(c.cashCollecte||0).toFixed(2)} EUR`, margin+115, y+5);
+      doc.setTextColor(230,53,53);
+      doc.text(`${comm.toFixed(2)} EUR`, margin+148, y+5);
+      doc.setDrawColor(220,220,220);
+      doc.line(margin, y+7, pageW-margin, y+7);
+      y += 7;
+    });
+
+    // Total row
+    y += 3;
+    doc.setFillColor(255,248,248);
+    doc.rect(margin, y, pageW-margin*2, 10, "F");
+    doc.setDrawColor(230,53,53);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y, pageW-margin, y);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    doc.setTextColor(230,53,53);
+    doc.text("TOTAL DÛ", margin+2, y+7);
+    doc.text(`${total.toFixed(2)} EUR`, margin+148, y+7);
+    y += 16;
+
+    // IBAN
+    if(profile.iban){
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(9);
+      doc.setTextColor(80,80,80);
+      doc.text(`Coordonnées bancaires : ${profile.iban}`, margin, y);
+      y += 8;
+    }
+
+    // Footer
+    y = 270;
+    doc.setDrawColor(220,220,220);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW-margin, y);
+    y += 5;
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.setFont("helvetica","normal");
+    doc.text(`${profile.prenom} ${profile.nom} — ${profile.statut} — SIRET ${profile.siret||"—"}`, margin, y);
+    y += 4;
+    doc.text("Document généré via Kloze • kloze-io.vercel.app", margin, y);
+
+    // Download
+    doc.save(`Facture-${numFacture}-${client.nom.replace(/\s/g,"-")}.pdf`);
+    
     const nextNum = factureNum + 1;
     setFactureNum(nextNum);
     localStorage.setItem(`kloze_facture_num_${user.id}`, String(nextNum));
