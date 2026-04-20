@@ -998,7 +998,7 @@ function PaiementsPage({calls,offers,onUpdate}:any){
             <div style={{fontSize:13,fontWeight:800,color:C.redText,fontFamily:SANS}}>{fmt(commActive)}/mois</div>
           </div>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:900}}>
-            <thead><tr style={{background:"#0d0d0d"}}>{["Client","Offre","Mensualité","Comm./mois","Payées","Restantes","Progression","Prochaine date","Statut","Màj"].map(h=><th key={h} style={{padding:"11px 16px",textAlign:h==="Client"||h==="Offre"?"left":"center" as any,fontSize:11,fontWeight:500,color:C.muted,textTransform:"uppercase",letterSpacing:.6,fontFamily:SANS,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+            <thead><tr style={{background:"#0d0d0d"}}>{["Client","Offre","Mensualité","Comm./mois","Payées","Restantes","Progression","Prochaine date","Statut","+ Mens.","Màj"].map(h=><th key={h} style={{padding:"11px 16px",textAlign:h==="Client"||h==="Offre"?"left":"center" as any,fontSize:11,fontWeight:500,color:C.muted,textTransform:"uppercase",letterSpacing:.6,fontFamily:SANS,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map((c:any)=>{
                 const o=offers.find((x:any)=>x.id===c.offerId);
@@ -1019,6 +1019,19 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     </td>
                     <td style={{padding:"12px 14px",textAlign:"center",color:C.muted,fontFamily:SANS,whiteSpace:"nowrap"}}>{fmtD(c.datePaiement||c.date)}</td>
                     <td style={{padding:"12px 14px",textAlign:"center"}}><span style={{background:statut.bg,color:statut.color,padding:"3px 10px",borderRadius:4,fontSize:11,fontWeight:700,fontFamily:SANS,border:`1px solid ${statut.color}33`}}>{statut.l}</span></td>
+                  <td style={{padding:"12px 14px",textAlign:"center"}}>
+                    <button
+                      onClick={async()=>{
+                        if(c.mensualitesRestantes<=0) return;
+                        const newCash=Number(c.cashCollecte||0)+Number(c.mensualite||0);
+                        const newRestantes=Math.max(0,c.mensualitesRestantes-1);
+                        const newPayees=(c.mensualitesPayees||0)+1;
+                        await onUpdate(c.id,{...c,cashCollecte:newCash,mensualitesRestantes:newRestantes,mensualitesPayees:newPayees});
+                      }}
+                      disabled={c.mensualitesRestantes<=0}
+                      style={{background:c.mensualitesRestantes>0?"rgba(34,197,94,.1)":"transparent",border:c.mensualitesRestantes>0?"1px solid rgba(34,197,94,.25)":`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:c.mensualitesRestantes>0?C.green:C.muted2,cursor:c.mensualitesRestantes>0?"pointer":"not-allowed",fontFamily:SANS,fontWeight:600,whiteSpace:"nowrap"}}
+                    >+ Mens.</button>
+                  </td>
                   <td style={{padding:"12px 14px",textAlign:"center"}}>
                     {editingId===c.id?(
                       <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"center"}}>
