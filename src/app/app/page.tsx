@@ -141,7 +141,7 @@ function Badge({status}:{status:string}){
   return <span style={{display:"inline-flex",alignItems:"center",gap:6,padding:"3px 10px",borderRadius:5,background:s.bg,color:s.color,fontSize:11,fontWeight:500,fontFamily:SANS,border:`1px solid ${s.color}20`,whiteSpace:"nowrap",letterSpacing:.2}}><span style={{width:4,height:4,borderRadius:"50%",background:s.color,display:"inline-block",flexShrink:0}}/>{s.label}</span>;
 }
 
-function KpiCard({label,value,sub,accent=false,small=false,delay=0,trend}:any){
+function KpiCard({label,value,sub,accent=false,small=false,delay=0,trend,onClick}:any){
   const [show,setShow]=useState(false);
   const [hov,setHov]=useState(false);
   useEffect(()=>{const t=setTimeout(()=>setShow(true),delay);return()=>clearTimeout(t);},[delay]);
@@ -149,13 +149,14 @@ function KpiCard({label,value,sub,accent=false,small=false,delay=0,trend}:any){
     <div
       onMouseEnter={()=>setHov(true)}
       onMouseLeave={()=>setHov(false)}
+      onClick={onClick||undefined}
       style={{
         background:accent?`linear-gradient(145deg,rgba(230,53,53,.07),rgba(230,53,53,.02))`:hov?C.card2:C.card,
         border:`1px solid ${accent?`rgba(230,53,53,.2)`:hov?C.border2:C.border}`,
         borderRadius:12,padding:"22px 24px",
         opacity:show?1:0,transform:show?"translateY(0)":"translateY(6px)",
         transition:"all .3s ease",position:"relative",overflow:"hidden",
-        boxShadow:hov?(accent?C.shadowRed:C.shadow):"none",cursor:"default"
+        boxShadow:hov?(accent?C.shadowRed:C.shadow):"none",cursor:onClick?"pointer":"default"
       }}>
       {accent&&<div style={{position:"absolute",top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,${C.red}80,transparent)`}}/>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
@@ -265,8 +266,54 @@ function PieTip({active,payload}:any){
   );
 }
 
+
+function DrillDownModal({title,deals,offers,onClose}:any){
+  if(!deals||deals.length===0) return null;
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.75)",backdropFilter:"blur(12px)"}} onClick={onClose}/>
+      <div style={{position:"relative",background:C.surface,border:`1px solid ${C.border}`,borderRadius:16,width:"100%",maxWidth:680,maxHeight:"80vh",margin:"0 16px",boxShadow:"0 24px 64px rgba(0,0,0,.8)",display:"flex",flexDirection:"column"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+          <h3 style={{margin:0,fontSize:15,fontWeight:600,color:C.white,fontFamily:SANS}}>{title}</h3>
+          <button onClick={onClose} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:6,cursor:"pointer",color:C.muted,width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>✕</button>
+        </div>
+        <div style={{overflowY:"auto",flex:1}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+            <thead><tr style={{background:C.card,borderBottom:`1px solid ${C.border}`}}>
+              {["Prospect","Date","Offre","Cash collecté","Commission"].map(h=>(
+                <th key={h} style={{padding:"10px 16px",textAlign:"left",fontSize:11,fontWeight:500,color:C.muted,textTransform:"uppercase",letterSpacing:.6,fontFamily:SANS}}>{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {deals.map((c:any)=>{
+                const offer=offers.find((o:any)=>o.id===c.offerId);
+                const comm=Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+                return(
+                  <tr key={c.id} style={{borderBottom:`1px solid ${C.border}`}}
+                    onMouseEnter={(e:any)=>e.currentTarget.style.background=C.card2}
+                    onMouseLeave={(e:any)=>e.currentTarget.style.background="transparent"}>
+                    <td style={{padding:"12px 16px",fontWeight:600,color:C.white,fontFamily:SANS}}>{c.prospect}</td>
+                    <td style={{padding:"12px 16px",color:C.muted,fontFamily:SANS}}>{fmtD(c.date)}</td>
+                    <td style={{padding:"12px 16px",color:C.muted,fontFamily:SANS,fontSize:11}}>{offer?.name||"—"}</td>
+                    <td style={{padding:"12px 16px",color:C.green,fontWeight:700,fontFamily:SANS}}>{fmt(Number(c.cashCollecte||0))}</td>
+                    <td style={{padding:"12px 16px",color:C.redText,fontWeight:700,fontFamily:SANS}}>{fmt(comm)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{padding:"14px 24px",borderTop:`1px solid ${C.border}`,flexShrink:0,display:"flex",justifyContent:"space-between"}}>
+          <span style={{fontSize:12,color:C.muted,fontFamily:SANS}}>{deals.length} deal{deals.length>1?"s":""}</span>
+          <span style={{fontSize:14,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(deals.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100,0))} total comm.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 function DashboardPage({calls,offers}:any){
   const [period,setPeriod]=useState("month");
+  const [drillDown,setDrillDown]=useState<{title:string,deals:any[]}|null>(null);
   const [start,setStart]=useState(""); const [end,setEnd]=useState("");
   const [offerF,setOfferF]=useState("all");
   const filtered=useMemo(()=>{let c=filterByPeriod(calls,period,start,end);if(offerF!=="all")c=c.filter((x:any)=>x.offerId===offerF);return c;},[calls,period,start,end,offerF]);
@@ -311,9 +358,9 @@ function DashboardPage({calls,offers}:any){
         <KpiCard delay={180} label="Revenue/Call" value={fmt(kpi.revenuePerCall)} sub={`${fmt(kpi.cashCollecte)} / ${kpi.effectues} appels`} accent={kpi.revenuePerCall>=800}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
-        <KpiCard delay={240} label="Cash Collecté"      value={fmt(kpi.cashCollecte)}  accent/>
-        <KpiCard delay={280} label="Cash Contracté"     value={fmt(kpi.cashContracte)} sub={`${kpi.sales} vente${kpi.sales!==1?"s":""}`}/>
-        <KpiCard delay={320} label="Commission Générée" value={fmt(kpi.commTotale)}    sub={`10% de ${fmt(kpi.cashContracte)}`}/>
+        <KpiCard delay={240} label="Cash Collecté" value={fmt(kpi.cashCollecte)} accent onClick={()=>setDrillDown({title:"Cash Collecté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
+        <KpiCard delay={280} label="Cash Contracté" value={fmt(kpi.cashContracte)} sub={`${kpi.sales} vente${kpi.sales!==1?"s":""}`} onClick={()=>setDrillDown({title:"Cash Contracté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.prixAccompagnement||0)>0)})}/>
+        <KpiCard delay={320} label="Commission Générée" value={fmt(kpi.commTotale)} sub={`10% de ${fmt(kpi.cashContracte)}`} onClick={()=>setDrillDown({title:"Commission Générée",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
         <KpiCard delay={360} label="Comm. Active"       value={fmt(commActive)}        accent sub="/mois"/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
@@ -406,7 +453,8 @@ function DashboardPage({calls,offers}:any){
           ):<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:180,color:C.muted,fontSize:12,fontFamily:SANS,gap:10}}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" opacity=".25"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Aucune vente</div>}
         </div>
       </div>
-            {dealsActifs.length>0&&(
+            {drillDown&&<DrillDownModal title={drillDown.title} deals={drillDown.deals} offers={offers} onClose={()=>setDrillDown(null)}/>}
+      {dealsActifs.length>0&&(
         <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,overflow:"hidden",boxShadow:C.shadow}}>
           <div style={{padding:"16px 24px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1.2,fontFamily:SANS}}>Deals Actifs — Commission Mensuelle</div>
