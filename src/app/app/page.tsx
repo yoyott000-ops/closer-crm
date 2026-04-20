@@ -100,7 +100,7 @@ function computeKpi(calls:any[],offers:any[]=[]) {
     showUpRate:   calls.length>0?Math.round(effectues/calls.length*1000)/10:0,
     pitchRate:    effectues>0?Math.round(pitched/effectues*1000)/10:0,
     closingRate:  effectues>0?Math.round(sales.length/effectues*1000)/10:0,
-    revenuePerCall: effectues>0?Math.round(sales.filter((c:any)=>c.paymentType!=="monthly").reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0)/effectues):0,
+    revenuePerCall: sales.length>0?Math.round(cashCollecte/sales.length):0,
   };
 }
 
