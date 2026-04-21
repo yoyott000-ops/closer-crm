@@ -488,12 +488,16 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
       if(selectedOffer&&k==="offerId") u.paymentType=selectedOffer.type;
     }
     const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
-    if(type==="monthly"&&prix>0&&nbM>0){
-      const restant=Math.max(0,prix-Number(u.cashCollecte||0));
-      u.mensualite=Math.round(restant/nbM*100)/100;
-      u.mensualitesPayees=0;
-      u.mensualitesRestantes=nbM;
-    } else if(type==="one_shot"){u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;}
+    if(["paymentType","prixAccompagnement","nombreMensualites","offerId"].includes(k)){
+      if(type==="monthly"&&prix>0&&nbM>0){
+        const restant=Math.max(0,prix-Number(u.cashCollecte||0));
+        u.mensualite=Math.round(restant/nbM*100)/100;
+        if(k!=="status"&&k!=="notes"&&k!=="objection"&&k!=="fathomUrl"&&k!=="rdvSuivi"&&k!=="nextCallDate"){
+          if(u.mensualitesPayees===undefined||u.mensualitesPayees===0) u.mensualitesPayees=0;
+          if(u.mensualitesRestantes===undefined||u.mensualitesRestantes===0) u.mensualitesRestantes=nbM;
+        }
+      } else if(type==="one_shot"){u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;}
+    }
     return u;
   });
   const filtered=useMemo(()=>calls.filter((c:any)=>c.prospect.toLowerCase().includes(search.toLowerCase())&&(statusF==="all"||c.status===statusF)&&(offerF==="all"||c.offerId===offerF)),[calls,search,statusF,offerF]);
