@@ -490,7 +490,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
       const type=k==="paymentType"?v:u.paymentType;
       const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement);
       const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
-      const cash=Number(k==="cashCollecte"?v:u.cashCollecte||0);
+      const cash=Number(k==="cashCollecte"?v:(u.cashCollecte||0));
       if(type==="monthly"&&prix>0&&nbM>0){
         const restant=Math.max(0,prix-cash);
         u.mensualite=Math.round(restant/nbM*100)/100;
@@ -578,7 +578,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
           <FLabel label="Date *" half><input type="date" style={inp} value={form.date} onChange={(e:any)=>setF("date",e.target.value)}/></FLabel>
           <FLabel label="Email" half><input style={inp} value={form.email} onChange={(e:any)=>setF("email",e.target.value)} placeholder="jean@email.com"/></FLabel>
           <FLabel label="Offre" half><select style={selInp} value={form.offerId} onChange={(e:any)=>setF("offerId",e.target.value)}><option value="">— Sans offre —</option>{offers.map((o:any)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></FLabel>
-          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setF("status",e.target.value)}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
+          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setForm((f:any)=>({...f,status:e.target.value}))}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
           {isPitched&&<>
             <Sep label="Deal"/>
             <FLabel label="Prix accompagnement (€) *" hint="Prix réel vendu"><input type="number" style={inp} value={form.prixAccompagnement} onChange={(e:any)=>setF("prixAccompagnement",+e.target.value)} placeholder="3000"/></FLabel>
@@ -1022,10 +1022,16 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     <button
                       onClick={async()=>{
                         if(c.mensualitesRestantes<=0) return;
-                        const newCash=Number(c.cashCollecte||0)+Number(c.mensualite||0);
+                        const today=new Date().toISOString().split("T")[0];
+                        const newCash=Math.round((Number(c.cashCollecte||0)+Number(c.mensualite||0))*100)/100;
                         const newRestantes=Math.max(0,c.mensualitesRestantes-1);
                         const newPayees=(c.mensualitesPayees||0)+1;
-                        await onUpdate(c.id,{...c,cashCollecte:newCash,mensualitesRestantes:newRestantes,mensualitesPayees:newPayees});
+                        await onUpdate(c.id,{...c,
+                          cashCollecte:newCash,
+                          mensualitesRestantes:newRestantes,
+                          mensualitesPayees:newPayees,
+                          datePaiement:today
+                        });
                       }}
                       disabled={c.mensualitesRestantes<=0}
                       style={{background:c.mensualitesRestantes>0?"rgba(34,197,94,.1)":"transparent",border:c.mensualitesRestantes>0?"1px solid rgba(34,197,94,.25)":`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:c.mensualitesRestantes>0?C.green:C.muted2,cursor:c.mensualitesRestantes>0?"pointer":"not-allowed",fontFamily:SANS,fontWeight:600,whiteSpace:"nowrap"}}
