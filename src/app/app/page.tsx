@@ -74,13 +74,6 @@ function commissionMensuelle(c:any,rate=RATE):number{ if(c.status!=="sale"||c.pa
 function commissionActive(c:any,rate=RATE):number{ 
   if(c.status!=="sale"||c.paymentType!=="monthly") return 0; 
   if(!c.mensualitesRestantes||c.mensualitesRestantes<=0) return 0;
-  // Only count if deal started this year or still has remaining payments
-  const dealDate = new Date(c.datePaiement||c.date);
-  const now = new Date();
-  const monthsElapsed = (now.getFullYear()-dealDate.getFullYear())*12 + (now.getMonth()-dealDate.getMonth());
-  const mensualitesPayees = Math.max(0, monthsElapsed);
-  const mensualitesRestantesCalc = Math.max(0, (c.nombreMensualites||1) - mensualitesPayees);
-  if(mensualitesRestantesCalc<=0) return 0;
   return commissionMensuelle(c,rate); 
 }
 function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0); }
@@ -100,7 +93,7 @@ function computeKpi(calls:any[],offers:any[]=[]) {
     showUpRate:   calls.length>0?Math.round(effectues/calls.length*1000)/10:0,
     pitchRate:    effectues>0?Math.round(pitched/effectues*1000)/10:0,
     closingRate:  effectues>0?Math.round(sales.length/effectues*1000)/10:0,
-    revenuePerCall: sales.length>0?Math.round(sales.reduce((s:number,c:any)=>s+(c.paymentType==="monthly"?Number(c.mensualite||0):Number(c.cashCollecte||0)),0)/sales.length):0,
+    revenuePerCall: effectues>0?Math.round(cashCollecte/effectues):0,
   };
 }
 
@@ -355,7 +348,7 @@ function DashboardPage({calls,offers}:any){
         <RateCard delay={0}   label="Show-up Rate"    value={kpi.showUpRate}    ok={kpi.showUpRate>=70}    warn={kpi.showUpRate>=50}   sub={`${kpi.effectues}/${kpi.bookes} bookés`}/>
         <RateCard delay={60}  label="Pitch Rate"      value={kpi.pitchRate}     ok={kpi.pitchRate>=60}     warn={kpi.pitchRate>=40}    sub={`${kpi.pitched}/${kpi.effectues} effectués`}/>
         <RateCard delay={120} label="Closing Rate"    value={kpi.closingRate}   ok={kpi.closingRate>=20}   warn={kpi.closingRate>=12}  sub={`${kpi.sales}/${kpi.effectues} effectués`}/>
-        <KpiCard delay={180} label="Rev/Vente" value={fmt(kpi.revenuePerCall)} sub={`${fmt(kpi.cashCollecte)} / ${kpi.effectues} appels`} accent={kpi.revenuePerCall>=800}/>
+        <KpiCard delay={180} label="Rev/Vente" value={fmt(kpi.revenuePerCall)} sub={`${fmt(kpi.cashCollecte)} / ${kpi.sales} vente${kpi.sales!==1?"s":""}`} accent={kpi.revenuePerCall>=800}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
         <KpiCard delay={240} label="Cash Collecté" value={fmt(kpi.cashCollecte)} accent onClick={()=>setDrillDown({title:"Cash Collecté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
@@ -488,11 +481,11 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
-    // Auto-fill price when offer is selected
+    // Auto-fill price when offer is selected (only on offer change, not status change)
     if(k==="offerId"&&v){
       const selectedOffer=offers.find((o:any)=>o.id===v);
       if(selectedOffer&&!f.prixAccompagnement) u.prixAccompagnement=selectedOffer.price;
-      if(selectedOffer) u.paymentType=selectedOffer.type;
+      if(selectedOffer&&!f.paymentType) u.paymentType=selectedOffer.type;
     }
     const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
     if(type==="monthly"&&prix>0&&nbM>0){
@@ -1071,7 +1064,7 @@ function PerformancesOffresPage({calls,offers}:any){
     const ventes=callsOffre.filter((c:any)=>c.status==="sale");
     const cashCollecte=ventes.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
     const commTotale=ventes.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0);
-    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:effectues>0?Math.round(cashCollecte/effectues):0};
+    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:ventes.length>0?Math.round(ventes.reduce((s:number,c:any)=>s+(c.paymentType==="monthly"?Number(c.mensualite||0):Number(c.cashCollecte||0)),0)/ventes.length):0};
   }),[filtered,offers]);
   const best=useMemo(()=>({
     cash:[...statsParOffre].sort((a,b)=>b.cashCollecte-a.cashCollecte)[0],
