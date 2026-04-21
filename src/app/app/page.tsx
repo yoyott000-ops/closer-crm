@@ -74,6 +74,13 @@ function commissionMensuelle(c:any,rate=RATE):number{ if(c.status!=="sale"||c.pa
 function commissionActive(c:any,rate=RATE):number{ 
   if(c.status!=="sale"||c.paymentType!=="monthly") return 0; 
   if(!c.mensualitesRestantes||c.mensualitesRestantes<=0) return 0;
+  // Only count if deal started this year or still has remaining payments
+  const dealDate = new Date(c.datePaiement||c.date);
+  const now = new Date();
+  const monthsElapsed = (now.getFullYear()-dealDate.getFullYear())*12 + (now.getMonth()-dealDate.getMonth());
+  const mensualitesPayees = Math.max(0, monthsElapsed);
+  const mensualitesRestantesCalc = Math.max(0, (c.nombreMensualites||1) - mensualitesPayees);
+  if(mensualitesRestantesCalc<=0) return 0;
   return commissionMensuelle(c,rate); 
 }
 function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0); }
@@ -93,7 +100,7 @@ function computeKpi(calls:any[],offers:any[]=[]) {
     showUpRate:   calls.length>0?Math.round(effectues/calls.length*1000)/10:0,
     pitchRate:    effectues>0?Math.round(pitched/effectues*1000)/10:0,
     closingRate:  effectues>0?Math.round(sales.length/effectues*1000)/10:0,
-    revenuePerCall: effectues>0?Math.round(cashCollecte/effectues):0,
+    revenuePerCall: sales.length>0?Math.round(sales.reduce((s:number,c:any)=>s+(c.paymentType==="monthly"?Number(c.mensualite||0):Number(c.cashCollecte||0)),0)/sales.length):0,
   };
 }
 
@@ -481,23 +488,8 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
-    // Auto-fill price when offer is selected (only on offer change, not status change)
-    if(k==="offerId"&&v){
-      const selectedOffer=offers.find((o:any)=>o.id===v);
-      if(selectedOffer&&!f.prixAccompagnement) u.prixAccompagnement=selectedOffer.price;
-      if(selectedOffer&&k==="offerId") u.paymentType=selectedOffer.type;
-    }
-    const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
-    if(["paymentType","prixAccompagnement","nombreMensualites","offerId"].includes(k)){
-      if(type==="monthly"&&prix>0&&nbM>0){
-        const restant=Math.max(0,prix-Number(u.cashCollecte||0));
-        u.mensualite=Math.round(restant/nbM*100)/100;
-        if(k!=="status"&&k!=="notes"&&k!=="objection"&&k!=="fathomUrl"&&k!=="rdvSuivi"&&k!=="nextCallDate"){
-          if(u.mensualitesPayees===undefined||u.mensualitesPayees===0) u.mensualitesPayees=0;
-          if(u.mensualitesRestantes===undefined||u.mensualitesRestantes===0) u.mensualitesRestantes=nbM;
-        }
-      } else if(type==="one_shot"){u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;}
-    }
+    if(k==="offerId"&&v){const sel=offers.find((o:any)=>o.id===v);if(sel&&!f.prixAccompagnement) u.prixAccompagnement=sel.price;if(sel&&!f.paymentType) u.paymentType=sel.type;}
+    if(["paymentType","prixAccompagnement","nombreMensualites"].includes(k)){const type=k==="paymentType"?v:u.paymentType;const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement);const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);if(type==="monthly"&&prix>0&&nbM>0){u.mensualite=Math.round(prix/nbM*100)/100;u.mensualitesRestantes=nbM;u.mensualitesPayees=0;}else if(type==="one_shot"){u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;}}
     return u;
   });
   const filtered=useMemo(()=>calls.filter((c:any)=>c.prospect.toLowerCase().includes(search.toLowerCase())&&(statusF==="all"||c.status===statusF)&&(offerF==="all"||c.offerId===offerF)),[calls,search,statusF,offerF]);
@@ -1030,6 +1022,9 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     >+ Mens.</button>
                   </td>
                   <td style={{padding:"12px 14px",textAlign:"center"}}>
+                    <button onClick={async()=>{if(c.mensualitesRestantes<=0)return;await onUpdate(c.id,{...c,cashCollecte:Number(c.cashCollecte||0)+Number(c.mensualite||0),mensualitesRestantes:Math.max(0,c.mensualitesRestantes-1),mensualitesPayees:(c.mensualitesPayees||0)+1});}} disabled={c.mensualitesRestantes<=0} style={{background:c.mensualitesRestantes>0?"rgba(34,197,94,.1)":"transparent",border:c.mensualitesRestantes>0?"1px solid rgba(34,197,94,.25)":`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:c.mensualitesRestantes>0?C.green:C.muted2,cursor:c.mensualitesRestantes>0?"pointer":"not-allowed",fontFamily:SANS,fontWeight:600}}>+ Mens.</button>
+                  </td>
+                  <td style={{padding:"12px 14px",textAlign:"center"}}>
                     {editingId===c.id?(
                       <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"center"}}>
                         <input type="number" value={editRestantes} onChange={(e:any)=>setEditRestantes(+e.target.value)} min="0" max={c.nombreMensualites} style={{...inp,width:52,padding:"4px 8px",fontSize:12,textAlign:"center"}} placeholder="0"/>
@@ -1068,7 +1063,7 @@ function PerformancesOffresPage({calls,offers}:any){
     const ventes=callsOffre.filter((c:any)=>c.status==="sale");
     const cashCollecte=ventes.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
     const commTotale=ventes.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0);
-    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:ventes.length>0?Math.round(ventes.reduce((s:number,c:any)=>s+(c.paymentType==="monthly"?Number(c.mensualite||0):Number(c.cashCollecte||0)),0)/ventes.length):0};
+    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:effectues>0?Math.round(cashCollecte/effectues):0};
   }),[filtered,offers]);
   const best=useMemo(()=>({
     cash:[...statsParOffre].sort((a,b)=>b.cashCollecte-a.cashCollecte)[0],
