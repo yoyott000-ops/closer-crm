@@ -74,13 +74,6 @@ function commissionMensuelle(c:any,rate=RATE):number{ if(c.status!=="sale"||c.pa
 function commissionActive(c:any,rate=RATE):number{ 
   if(c.status!=="sale"||c.paymentType!=="monthly") return 0; 
   if(!c.mensualitesRestantes||c.mensualitesRestantes<=0) return 0;
-  // Only count if deal started this year or still has remaining payments
-  const dealDate = new Date(c.datePaiement||c.date);
-  const now = new Date();
-  const monthsElapsed = (now.getFullYear()-dealDate.getFullYear())*12 + (now.getMonth()-dealDate.getMonth());
-  const mensualitesPayees = Math.max(0, monthsElapsed);
-  const mensualitesRestantesCalc = Math.max(0, (c.nombreMensualites||1) - mensualitesPayees);
-  if(mensualitesRestantesCalc<=0) return 0;
   return commissionMensuelle(c,rate); 
 }
 function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0); }
@@ -488,14 +481,29 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const [form,setForm]=useState(empty);
   const setF=(k:string,v:any)=>setForm((f:any)=>{
     const u={...f,[k]:v};
-    if(k==="offerId"&&v){const sel=offers.find((o:any)=>o.id===v);if(sel&&!f.prixAccompagnement) u.prixAccompagnement=sel.price;if(sel&&!f.paymentType) u.paymentType=sel.type;}
-    if(["paymentType","prixAccompagnement","nombreMensualites"].includes(k)){const type=k==="paymentType"?v:u.paymentType;const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement);const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);if(type==="monthly"&&prix>0&&nbM>0){u.mensualite=Math.round(prix/nbM*100)/100;u.mensualitesRestantes=nbM;u.mensualitesPayees=0;}else if(type==="one_shot"){u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;}}
+    if(k==="offerId"&&v){
+      const sel=offers.find((o:any)=>o.id===v);
+      if(sel&&!f.prixAccompagnement) u.prixAccompagnement=sel.price;
+      if(sel&&!f.paymentType) u.paymentType=sel.type;
+    }
+    if(["paymentType","prixAccompagnement","nombreMensualites"].includes(k)){
+      const type=k==="paymentType"?v:u.paymentType;
+      const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement);
+      const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
+      if(type==="monthly"&&prix>0&&nbM>0){
+        u.mensualite=Math.round(prix/nbM*100)/100;
+        u.mensualitesRestantes=nbM;
+        u.mensualitesPayees=0;
+      } else if(type==="one_shot"){
+        u.mensualite=prix;u.nombreMensualites=1;u.mensualitesRestantes=0;u.mensualitesPayees=0;
+      }
+    }
     return u;
   });
   const filtered=useMemo(()=>calls.filter((c:any)=>c.prospect.toLowerCase().includes(search.toLowerCase())&&(statusF==="all"||c.status===statusF)&&(offerF==="all"||c.offerId===offerF)),[calls,search,statusF,offerF]);
   const openAdd=()=>{setForm(empty);setEdit(null);setShow(true);};
   const openEdit=(c:any)=>{setForm({...c});setEdit(c);setShow(true);};
-  const submit=async()=>{if(!form.prospect)return;console.log('SUBMIT',{id:edit?.id,status:form.status,prospect:form.prospect});edit?await onUpdate(edit.id,form):onAdd(form);setShow(false);};
+  const submit=()=>{if(!form.prospect)return;edit?onUpdate(edit.id,form):onAdd(form);setShow(false);};
   const isPitched=["offer_pitched","sale"].includes(form.status); const isSale=form.status==="sale";
   const offreSelectionnee=offers.find((o:any)=>o.id===form.offerId);const isPIFForm=form.paymentType==="one_shot"&&Number(form.cashCollecte||0)>=Number(form.prixAccompagnement||0)&&Number(form.prixAccompagnement||0)>0;const tauxForm=isPIFForm&&offreSelectionnee?.commissionBonus>0?offreSelectionnee.commissionBonus/100:offreSelectionnee?.commission>0?offreSelectionnee.commission/100:RATE;const commMois=form.paymentType==="monthly"&&form.mensualite>0?Math.round(form.mensualite*tauxForm*100)/100:0;
   const commTotal=form.paymentType==="one_shot"&&form.prixAccompagnement>0?Math.round(form.prixAccompagnement*tauxForm*100)/100:0;
@@ -528,7 +536,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                  <select value={c.status} onChange={async(e:any)=>{await onUpdate(c.id,{...c,status:e.target.value});}} style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.white,cursor:"pointer",fontFamily:SANS,outline:"none"}}>{Object.entries(STATUTS).map(([k,s]:any)=><option key={k} value={k}>{s.label}</option>)}</select>
+                  <select value={c.status} onChange={async(e:any)=>{const newStatus=e.target.value;await onUpdate(c.id,{...c,status:newStatus});}} style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:6,padding:"3px 8px",fontSize:10,color:C.white,cursor:"pointer",fontFamily:SANS,outline:"none",fontWeight:600}}>{Object.entries(STATUTS).map(([k,s]:any)=><option key={k} value={k}>{s.label}</option>)}</select>
                   <select
                     value={c.rdvSuivi||""}
                     onChange={async(e:any)=>{await onUpdate(c.id,{...c,rdvSuivi:e.target.value});}}
@@ -568,7 +576,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
           <FLabel label="Date *" half><input type="date" style={inp} value={form.date} onChange={(e:any)=>setF("date",e.target.value)}/></FLabel>
           <FLabel label="Email" half><input style={inp} value={form.email} onChange={(e:any)=>setF("email",e.target.value)} placeholder="jean@email.com"/></FLabel>
           <FLabel label="Offre" half><select style={selInp} value={form.offerId} onChange={(e:any)=>setF("offerId",e.target.value)}><option value="">— Sans offre —</option>{offers.map((o:any)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></FLabel>
-          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setForm((f:any)=>({...f,status:e.target.value}))}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
+          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setF("status",e.target.value)}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
           {isPitched&&<>
             <Sep label="Deal"/>
             <FLabel label="Prix accompagnement (€) *" hint="Prix réel vendu"><input type="number" style={inp} value={form.prixAccompagnement} onChange={(e:any)=>setF("prixAccompagnement",+e.target.value)} placeholder="3000"/></FLabel>
@@ -1022,9 +1030,6 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     >+ Mens.</button>
                   </td>
                   <td style={{padding:"12px 14px",textAlign:"center"}}>
-                    <button onClick={async()=>{if(c.mensualitesRestantes<=0)return;await onUpdate(c.id,{...c,cashCollecte:Number(c.cashCollecte||0)+Number(c.mensualite||0),mensualitesRestantes:Math.max(0,c.mensualitesRestantes-1),mensualitesPayees:(c.mensualitesPayees||0)+1});}} disabled={c.mensualitesRestantes<=0} style={{background:c.mensualitesRestantes>0?"rgba(34,197,94,.1)":"transparent",border:c.mensualitesRestantes>0?"1px solid rgba(34,197,94,.25)":`1px solid ${C.border}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:c.mensualitesRestantes>0?C.green:C.muted2,cursor:c.mensualitesRestantes>0?"pointer":"not-allowed",fontFamily:SANS,fontWeight:600}}>+ Mens.</button>
-                  </td>
-                  <td style={{padding:"12px 14px",textAlign:"center"}}>
                     {editingId===c.id?(
                       <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"center"}}>
                         <input type="number" value={editRestantes} onChange={(e:any)=>setEditRestantes(+e.target.value)} min="0" max={c.nombreMensualites} style={{...inp,width:52,padding:"4px 8px",fontSize:12,textAlign:"center"}} placeholder="0"/>
@@ -1063,7 +1068,7 @@ function PerformancesOffresPage({calls,offers}:any){
     const ventes=callsOffre.filter((c:any)=>c.status==="sale");
     const cashCollecte=ventes.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
     const commTotale=ventes.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0);
-    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:effectues>0?Math.round(cashCollecte/effectues):0};
+    return {id:o.id,name:o.name,type:o.type,commission:o.commission||10,commissionBonus:o.commissionBonus||o.commission||10,bookes,effectues,ventes:ventes.length,cashCollecte,commTotale:Math.round(commTotale*100)/100,showUpRate:bookes>0?Math.round(effectues/bookes*1000)/10:0,closingRate:effectues>0?Math.round(ventes.length/effectues*1000)/10:0,revenuePerCall:ventes.length>0?Math.round(ventes.reduce((s:number,c:any)=>s+(c.paymentType==="monthly"?Number(c.mensualite||0):Number(c.cashCollecte||0)),0)/ventes.length):0};
   }),[filtered,offers]);
   const best=useMemo(()=>({
     cash:[...statsParOffre].sort((a,b)=>b.cashCollecte-a.cashCollecte)[0],
