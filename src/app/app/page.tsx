@@ -576,7 +576,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
           <FLabel label="Date *" half><input type="date" style={inp} value={form.date} onChange={(e:any)=>setF("date",e.target.value)}/></FLabel>
           <FLabel label="Email" half><input style={inp} value={form.email} onChange={(e:any)=>setF("email",e.target.value)} placeholder="jean@email.com"/></FLabel>
           <FLabel label="Offre" half><select style={selInp} value={form.offerId} onChange={(e:any)=>setF("offerId",e.target.value)}><option value="">— Sans offre —</option>{offers.map((o:any)=><option key={o.id} value={o.id}>{o.name}</option>)}</select></FLabel>
-          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setF("status",e.target.value)}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
+          <FLabel label="Statut *" half><select style={selInp} value={form.status} onChange={(e:any)=>setForm((f:any)=>({...f,status:e.target.value}))}>{Object.entries(STATUTS).map(([k,s])=><option key={k} value={k}>{s.label}</option>)}</select></FLabel>
           {isPitched&&<>
             <Sep label="Deal"/>
             <FLabel label="Prix accompagnement (€) *" hint="Prix réel vendu"><input type="number" style={inp} value={form.prixAccompagnement} onChange={(e:any)=>setF("prixAccompagnement",+e.target.value)} placeholder="3000"/></FLabel>
