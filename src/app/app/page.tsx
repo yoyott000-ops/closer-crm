@@ -1030,7 +1030,6 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                           cashCollecte:newCash,
                           mensualitesRestantes:newRestantes,
                           mensualitesPayees:newPayees,
-                          datePaiement:today
                         });
                       }}
                       disabled={c.mensualitesRestantes<=0}
