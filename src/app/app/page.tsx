@@ -107,17 +107,13 @@ const PERIODS=[{v:"7d",l:"7J"},{v:"30d",l:"30J"},{v:"month",l:"Mois"},{v:"year",
 function filterByPeriod(calls:any[],period:string,s?:string,e?:string) {
   if(period==="all") return calls;
   const now=new Date(); let from=new Date(now); const to=new Date(now); to.setHours(23,59,59,999);
-  if(period==="custom"&&s&&e){ from=new Date(s); from.setHours(0,0,0,0); const te=new Date(e); te.setHours(23,59,59,999); return calls.filter((c:any)=>{const d=new Date(c.paymentType==="monthly"&&c.datePaiement?c.datePaiement:c.date);return d>=from&&d<=te;}); }
+  if(period==="custom"&&s&&e){ from=new Date(s); from.setHours(0,0,0,0); const te=new Date(e); te.setHours(23,59,59,999); return calls.filter((c:any)=>{const d=new Date(c.date);return d>=from&&d<=te;}); }
   if(period==="7d") from.setDate(now.getDate()-7);
   if(period==="30d") from.setDate(now.getDate()-30);
   if(period==="month"){from.setDate(1);from.setHours(0,0,0,0);}
   if(period==="year"){from.setMonth(0,1);from.setHours(0,0,0,0);}
   // For monthly deals: use datePaiement to correctly attribute cash to the right period
-  return calls.filter((c:any)=>{
-    const dateRef = c.paymentType==="monthly"&&c.datePaiement ? c.datePaiement : c.date;
-    const d=new Date(dateRef);
-    return d>=from&&d<=to;
-  });
+  return calls.filter((c:any)=>{const d=new Date(c.date);return d>=from&&d<=to;});
 }
 
 function buildChart(calls:any[]) {
