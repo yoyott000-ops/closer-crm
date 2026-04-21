@@ -528,7 +528,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
                 <td style={{padding:"11px 14px"}}>{o?<span style={{fontSize:10,background:"#1e1e1e",color:C.muted,padding:"2px 7px",borderRadius:4,fontWeight:600,fontFamily:SANS,border:`1px solid ${C.border2}`}}>{o.name}</span>:<span style={{color:C.muted2}}>—</span>}</td>
                 <td style={{padding:"11px 14px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                  <Badge status={c.status}/>
+                  <select value={c.status} onChange={async(e:any)=>{await onUpdate(c.id,{...c,status:e.target.value});}} style={{background:"#1a1a1a",border:`1px solid ${C.border2}`,borderRadius:5,padding:"2px 6px",fontSize:10,color:C.white,cursor:"pointer",fontFamily:SANS,outline:"none"}}>{Object.entries(STATUTS).map(([k,s]:any)=><option key={k} value={k}>{s.label}</option>)}</select>
                   <select
                     value={c.rdvSuivi||""}
                     onChange={async(e:any)=>{await onUpdate(c.id,{...c,rdvSuivi:e.target.value});}}
