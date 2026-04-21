@@ -486,12 +486,14 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
       if(sel&&!f.prixAccompagnement) u.prixAccompagnement=sel.price;
       if(sel&&!f.paymentType) u.paymentType=sel.type;
     }
-    if(["paymentType","prixAccompagnement","nombreMensualites"].includes(k)){
+    if(["paymentType","prixAccompagnement","nombreMensualites","cashCollecte"].includes(k)){
       const type=k==="paymentType"?v:u.paymentType;
       const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement);
       const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
+      const cash=Number(k==="cashCollecte"?v:u.cashCollecte||0);
       if(type==="monthly"&&prix>0&&nbM>0){
-        u.mensualite=Math.round(prix/nbM*100)/100;
+        const restant=Math.max(0,prix-cash);
+        u.mensualite=Math.round(restant/nbM*100)/100;
         u.mensualitesRestantes=nbM;
         u.mensualitesPayees=0;
       } else if(type==="one_shot"){
