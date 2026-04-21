@@ -84,12 +84,7 @@ function computeKpi(calls:any[],offers:any[]=[]) {
   const sales=calls.filter((c:any)=>c.status==="sale");
   const cashCollecte=sales.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
   const cashContracte=sales.reduce((s:number,c:any)=>s+Number(c.prixAccompagnement||0),0);
-  // Commission: on cashCollecte for one_shot, on mensualite for monthly (current period payment)
-  const commTotale=Math.round(sales.reduce((s:number,c:any)=>{
-    const rate=getRate(offers,c.offerId,c);
-    if(c.paymentType==="monthly") return s+Math.round(Number(c.mensualite||0)*rate*100)/100;
-    return s+Math.round(Number(c.cashCollecte||0)*rate*100)/100;
-  },0)*100)/100;
+  const commTotale=Math.round(sales.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0)*100)/100;
   const commContractee=Math.round(sales.reduce((s:number,c:any)=>s+Math.round(Number(c.prixAccompagnement||0)*getRate(offers,c.offerId,c)*100)/100,0)*100)/100;
   const commActive2=calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0);
   return {
@@ -112,7 +107,6 @@ function filterByPeriod(calls:any[],period:string,s?:string,e?:string) {
   if(period==="30d") from.setDate(now.getDate()-30);
   if(period==="month"){from.setDate(1);from.setHours(0,0,0,0);}
   if(period==="year"){from.setMonth(0,1);from.setHours(0,0,0,0);}
-  // For monthly deals: use datePaiement to correctly attribute cash to the right period
   return calls.filter((c:any)=>{const d=new Date(c.date);return d>=from&&d<=to;});
 }
 
@@ -286,7 +280,7 @@ function DrillDownModal({title,deals,offers,onClose}:any){
             <tbody>
               {deals.map((c:any)=>{
                 const offer=offers.find((o:any)=>o.id===c.offerId);
-                const comm=Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+                const comm=commissionDeal(c,getRate(offers,c.offerId,c));
                 return(
                   <tr key={c.id} style={{borderBottom:`1px solid ${C.border}`}}
                     onMouseEnter={(e:any)=>e.currentTarget.style.background=C.card2}
@@ -304,7 +298,7 @@ function DrillDownModal({title,deals,offers,onClose}:any){
         </div>
         <div style={{padding:"14px 24px",borderTop:`1px solid ${C.border}`,flexShrink:0,display:"flex",justifyContent:"space-between"}}>
           <span style={{fontSize:12,color:C.muted,fontFamily:SANS}}>{deals.length} deal{deals.length>1?"s":""}</span>
-          <span style={{fontSize:14,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(deals.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100,0))} total comm.</span>
+          <span style={{fontSize:14,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(deals.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0))} total comm.</span>
         </div>
       </div>
     </div>
@@ -359,7 +353,7 @@ function DashboardPage({calls,offers}:any){
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
         <KpiCard delay={240} label="Cash Collecté" value={fmt(kpi.cashCollecte)} accent onClick={()=>setDrillDown({title:"Cash Collecté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
         <KpiCard delay={280} label="Cash Contracté" value={fmt(kpi.cashContracte)} sub={`${kpi.sales} vente${kpi.sales!==1?"s":""}`} onClick={()=>setDrillDown({title:"Cash Contracté",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.prixAccompagnement||0)>0)})}/>
-        <KpiCard delay={320} label="Commission Générée" value={fmt(kpi.commTotale)} sub={`10% de ${fmt(kpi.cashContracte)}`} onClick={()=>setDrillDown({title:"Commission Générée",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
+        <KpiCard delay={320} label="Commission Générée" value={fmt(kpi.commTotale)} sub={`${Math.round(getRate(offers,filtered.find((c:any)=>c.status==="sale")?.offerId||"",filtered.find((c:any)=>c.status==="sale"))*100)}% de ${fmt(kpi.cashContracte)}`} onClick={()=>setDrillDown({title:"Commission Générée",deals:filtered.filter((c:any)=>c.status==="sale"&&Number(c.cashCollecte||0)>0)})}/>
         <KpiCard delay={360} label="Comm. Active"       value={fmt(commActive)}        accent sub="/mois"/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
@@ -925,14 +919,18 @@ function PaiementsPage({calls,offers,onUpdate}:any){
   };
   const previsions=useMemo(()=>{
     return Array.from({length:6},(_,i)=>{
-      const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+      const targetDate=new Date(now.getFullYear(),now.getMonth()+i,1);
+      const targetYear=targetDate.getFullYear();
+      const targetMonth=targetDate.getMonth();
       const comm=filtered.filter((c:any)=>c.mensualitesRestantes>0).reduce((s:number,c:any)=>{
         const start=new Date(c.datePaiement||c.date);
-        const moisEcoules=Math.floor((d.getTime()-start.getTime())/(1000*60*60*24*30));
+        const startYear=start.getFullYear();
+        const startMonth=start.getMonth();
+        const moisEcoules=(targetYear-startYear)*12+(targetMonth-startMonth);
         if(moisEcoules>=0&&moisEcoules<c.nombreMensualites) return s+commissionMensuelle(c,getRate(offers,c.offerId,c));
         return s;
       },0);
-      return {mois:MOIS[d.getMonth()].slice(0,3),comm:Math.round(comm)};
+      return {mois:MOIS[targetMonth].slice(0,3),comm:Math.round(comm)};
     });
   },[filtered,offers]);
   return(
@@ -1712,7 +1710,7 @@ function FacturationPage({calls, offers, user}:any){
     
     const numFacture = `${selectedYear}-${String(selectedMonth+1).padStart(2,"0")}-${String(factureNum).padStart(3,"0")}`;
     const today = new Date().toLocaleDateString("fr-FR");
-    const total = callsDuMois.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100, 0);
+    const total = callsDuMois.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)), 0);
 
     // Load jsPDF dynamically
     const { jsPDF } = await import("jspdf");
@@ -1790,7 +1788,7 @@ function FacturationPage({calls, offers, user}:any){
     doc.setFontSize(9);
     callsDuMois.forEach((c:any, idx:number)=>{
       const offer = offers.find((o:any)=>o.id===c.offerId);
-      const comm = Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+      const comm = commissionDeal(c,getRate(offers,c.offerId,c));
       if(idx%2===0){ doc.setFillColor(252,252,252); doc.rect(margin,y,pageW-margin*2,7,"F"); }
       doc.setTextColor(30,30,30);
       doc.text(c.prospect.substring(0,22), margin+2, y+5);
@@ -1952,7 +1950,7 @@ function FacturationPage({calls, offers, user}:any){
               </FLabel>
               <FLabel label="Année" half>
                 <select style={selInp} value={selectedYear} onChange={(e:any)=>setSelectedYear(Number(e.target.value))}>
-                  {[2024,2025,2026].map(y=><option key={y} value={y}>{y}</option>)}
+                  {Array.from({length:4},(_,i)=>new Date().getFullYear()-1+i).map(y=><option key={y} value={y}>{y}</option>)}
                 </select>
               </FLabel>
               <FLabel label="N° de facture">
@@ -1977,7 +1975,7 @@ function FacturationPage({calls, offers, user}:any){
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
                   {callsDuMois.map((c:any)=>{
                     const offer = offers.find((o:any)=>o.id===c.offerId);
-                    const comm = Math.round(Number(c.cashCollecte||0)*0.10*100)/100;
+                    const comm = commissionDeal(c,getRate(offers,c.offerId,c));
                     return(
                       <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C.card2,borderRadius:8,fontSize:12}}>
                         <div>
@@ -1994,7 +1992,7 @@ function FacturationPage({calls, offers, user}:any){
                 </div>
                 <div style={{borderTop:`1px solid ${C.border}`,paddingTop:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span style={{fontSize:13,color:C.muted,fontFamily:SANS}}>{callsDuMois.length} vente{callsDuMois.length>1?"s":""}</span>
-                  <span style={{fontSize:18,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(callsDuMois.reduce((s:number,c:any)=>s+Math.round(Number(c.cashCollecte||0)*0.10*100)/100,0))}</span>
+                  <span style={{fontSize:18,fontWeight:700,color:C.redText,fontFamily:SANS}}>{fmt(callsDuMois.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0))}</span>
                 </div>
               </>
             )}
@@ -2154,7 +2152,6 @@ export default function Home(){
     setOffers((os:any[])=>os.filter((o:any)=>o.id!==id));
   },[user]);
   const commActive=useMemo(()=>getCommActiveGlobale(calls,offers),[calls,offers]);
-  const kpi7=useMemo(()=>computeKpi(filterByPeriod(calls,"7d"),offers),[calls,offers]);
   const NAV=[
     {id:"dashboard", label:"Dashboard",      icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'},
     {id:"calls",     label:"Appels & Deals", icon:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.07 2.18 2 2 0 012.03 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'},
@@ -2207,6 +2204,14 @@ export default function Home(){
         </div>
       </aside>
       <main style={{flex:1,overflowY:"auto",padding:"28px 32px",background:C.bg}}>
+        {dataLoading?(
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",flexDirection:"column",gap:16}}>
+            <div style={{width:28,height:28,border:`2px solid ${C.border2}`,borderTop:`2px solid ${C.red}`,borderRadius:"50%",animation:"spin 1s linear infinite"}}/>
+            <div style={{fontSize:12,color:C.muted,fontFamily:SANS}}>Chargement des données...</div>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        ):(
+          <>
         {page==="dashboard"&&<DashboardPage calls={calls} offers={offers}/>}
         {page==="calls"&&<CallsPage calls={calls} offers={offers} onAdd={addCall} onUpdate={updateCall} onDelete={deleteCall}/>}
         {page==="offers"&&<OffersPage offers={offers} onAdd={addOffer} onUpdate={updateOffer} onDelete={deleteOffer}/>}
@@ -2220,6 +2225,8 @@ export default function Home(){
   setCalendlyUrl(url);
   await supabase.from("profiles").upsert({id:user?.id,calendly_url:url},{onConflict:"id"});
 }}/>}
+          </>
+        )}
       </main>
       {showOnboarding&&<OnboardingModal
         onFinish={()=>{
