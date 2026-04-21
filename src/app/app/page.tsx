@@ -1022,14 +1022,17 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     <button
                       onClick={async()=>{
                         if(c.mensualitesRestantes<=0) return;
-                        const today=new Date().toISOString().split("T")[0];
                         const newCash=Math.round((Number(c.cashCollecte||0)+Number(c.mensualite||0))*100)/100;
                         const newRestantes=Math.max(0,c.mensualitesRestantes-1);
                         const newPayees=(c.mensualitesPayees||0)+1;
+                        const baseDate=new Date(c.datePaiement||c.date);
+                        baseDate.setMonth(baseDate.getMonth()+1);
+                        const nextDate=baseDate.toISOString().split("T")[0];
                         await onUpdate(c.id,{...c,
                           cashCollecte:newCash,
                           mensualitesRestantes:newRestantes,
                           mensualitesPayees:newPayees,
+                          datePaiement:nextDate,
                         });
                       }}
                       disabled={c.mensualitesRestantes<=0}
