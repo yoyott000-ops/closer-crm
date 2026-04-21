@@ -485,7 +485,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
     if(k==="offerId"&&v){
       const selectedOffer=offers.find((o:any)=>o.id===v);
       if(selectedOffer&&!f.prixAccompagnement) u.prixAccompagnement=selectedOffer.price;
-      if(selectedOffer&&!f.paymentType) u.paymentType=selectedOffer.type;
+      if(selectedOffer&&k==="offerId") u.paymentType=selectedOffer.type;
     }
     const type=k==="paymentType"?v:u.paymentType; const prix=Number(k==="prixAccompagnement"?v:u.prixAccompagnement); const nbM=Number(k==="nombreMensualites"?v:u.nombreMensualites);
     if(type==="monthly"&&prix>0&&nbM>0){
