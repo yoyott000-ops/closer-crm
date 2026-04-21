@@ -84,7 +84,12 @@ function computeKpi(calls:any[],offers:any[]=[]) {
   const sales=calls.filter((c:any)=>c.status==="sale");
   const cashCollecte=sales.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
   const cashContracte=sales.reduce((s:number,c:any)=>s+Number(c.prixAccompagnement||0),0);
-  const commTotale=Math.round(sales.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0)*100)/100;
+  // Commission: on cashCollecte for one_shot, on mensualite for monthly (current period payment)
+  const commTotale=Math.round(sales.reduce((s:number,c:any)=>{
+    const rate=getRate(offers,c.offerId,c);
+    if(c.paymentType==="monthly") return s+Math.round(Number(c.mensualite||0)*rate*100)/100;
+    return s+Math.round(Number(c.cashCollecte||0)*rate*100)/100;
+  },0)*100)/100;
   const commContractee=Math.round(sales.reduce((s:number,c:any)=>s+Math.round(Number(c.prixAccompagnement||0)*getRate(offers,c.offerId,c)*100)/100,0)*100)/100;
   const commActive2=calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0);
   return {
@@ -102,12 +107,17 @@ const PERIODS=[{v:"7d",l:"7J"},{v:"30d",l:"30J"},{v:"month",l:"Mois"},{v:"year",
 function filterByPeriod(calls:any[],period:string,s?:string,e?:string) {
   if(period==="all") return calls;
   const now=new Date(); let from=new Date(now); const to=new Date(now); to.setHours(23,59,59,999);
-  if(period==="custom"&&s&&e){ from=new Date(s); from.setHours(0,0,0,0); const te=new Date(e); te.setHours(23,59,59,999); return calls.filter((c:any)=>{const d=new Date(c.date);return d>=from&&d<=te;}); }
+  if(period==="custom"&&s&&e){ from=new Date(s); from.setHours(0,0,0,0); const te=new Date(e); te.setHours(23,59,59,999); return calls.filter((c:any)=>{const d=new Date(c.paymentType==="monthly"&&c.datePaiement?c.datePaiement:c.date);return d>=from&&d<=te;}); }
   if(period==="7d") from.setDate(now.getDate()-7);
   if(period==="30d") from.setDate(now.getDate()-30);
   if(period==="month"){from.setDate(1);from.setHours(0,0,0,0);}
   if(period==="year"){from.setMonth(0,1);from.setHours(0,0,0,0);}
-  return calls.filter((c:any)=>{const d=new Date(c.date);return d>=from&&d<=to;});
+  // For monthly deals: use datePaiement to correctly attribute cash to the right period
+  return calls.filter((c:any)=>{
+    const dateRef = c.paymentType==="monthly"&&c.datePaiement ? c.datePaiement : c.date;
+    const d=new Date(dateRef);
+    return d>=from&&d<=to;
+  });
 }
 
 function buildChart(calls:any[]) {
@@ -1022,17 +1032,15 @@ function PaiementsPage({calls,offers,onUpdate}:any){
                     <button
                       onClick={async()=>{
                         if(c.mensualitesRestantes<=0) return;
+                        const today=new Date().toISOString().split("T")[0];
                         const newCash=Math.round((Number(c.cashCollecte||0)+Number(c.mensualite||0))*100)/100;
                         const newRestantes=Math.max(0,c.mensualitesRestantes-1);
                         const newPayees=(c.mensualitesPayees||0)+1;
-                        const baseDate=new Date(c.datePaiement||c.date);
-                        baseDate.setMonth(baseDate.getMonth()+1);
-                        const nextDate=baseDate.toISOString().split("T")[0];
                         await onUpdate(c.id,{...c,
                           cashCollecte:newCash,
                           mensualitesRestantes:newRestantes,
                           mensualitesPayees:newPayees,
-                          datePaiement:nextDate,
+                          datePaiement:today
                         });
                       }}
                       disabled={c.mensualitesRestantes<=0}
