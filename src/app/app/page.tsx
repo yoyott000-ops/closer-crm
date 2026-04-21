@@ -32,12 +32,12 @@ const OBJECTIONS=[
 ];
 
 const STATUTS: Record<string, { label:string; color:string; bg:string; dot:string }> = {
-  booked:        { label:"Booké",         color:C.purple, bg:"rgba(168,85,247,.1)",  dot:C.purple },
-  no_show:       { label:"No Show",       color:C.muted,  bg:"rgba(136,136,136,.1)", dot:C.muted  },
-  call_done:     { label:"Call Done",     color:C.blue,   bg:"rgba(59,130,246,.1)",  dot:C.blue   },
-  offer_pitched: { label:"Offre Pitchée", color:C.amber,  bg:"rgba(245,158,11,.1)",  dot:C.amber  },
-  pitcher_non_vendu: { label:"Pitché non vendu", color:"#f97316", bg:"rgba(249,115,22,.1)", dot:"#f97316" },
-  sale:          { label:"Vente ✓",       color:C.green,  bg:"rgba(34,197,94,.1)",   dot:C.green  },
+  booked:            { label:"Booké",            color:"#a855f7", bg:"rgba(168,85,247,.12)",  dot:"#a855f7" },
+  no_show:           { label:"No Show",           color:"#6b7280", bg:"rgba(107,114,128,.12)", dot:"#6b7280" },
+  call_done:         { label:"Call Done",         color:"#3b82f6", bg:"rgba(59,130,246,.12)",  dot:"#3b82f6" },
+  offer_pitched:     { label:"Offre Pitchée",     color:"#f59e0b", bg:"rgba(245,158,11,.12)",  dot:"#f59e0b" },
+  pitcher_non_vendu: { label:"Pitché non vendu",  color:"#e63535", bg:"rgba(230,53,53,.12)",   dot:"#e63535" },
+  sale:              { label:"Vente ✓",           color:"#22c55e", bg:"rgba(34,197,94,.12)",   dot:"#22c55e" },
 };
 
 const defaultOffers = [
