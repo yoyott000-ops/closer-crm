@@ -495,7 +495,7 @@ function CallsPage({calls,offers,onAdd,onUpdate,onDelete}:any){
   const filtered=useMemo(()=>calls.filter((c:any)=>c.prospect.toLowerCase().includes(search.toLowerCase())&&(statusF==="all"||c.status===statusF)&&(offerF==="all"||c.offerId===offerF)),[calls,search,statusF,offerF]);
   const openAdd=()=>{setForm(empty);setEdit(null);setShow(true);};
   const openEdit=(c:any)=>{setForm({...c});setEdit(c);setShow(true);};
-  const submit=()=>{if(!form.prospect)return;edit?onUpdate(edit.id,form):onAdd(form);setShow(false);};
+  const submit=async()=>{if(!form.prospect)return;console.log('SUBMIT',{id:edit?.id,status:form.status,prospect:form.prospect});edit?await onUpdate(edit.id,form):onAdd(form);setShow(false);};
   const isPitched=["offer_pitched","sale"].includes(form.status); const isSale=form.status==="sale";
   const offreSelectionnee=offers.find((o:any)=>o.id===form.offerId);const isPIFForm=form.paymentType==="one_shot"&&Number(form.cashCollecte||0)>=Number(form.prixAccompagnement||0)&&Number(form.prixAccompagnement||0)>0;const tauxForm=isPIFForm&&offreSelectionnee?.commissionBonus>0?offreSelectionnee.commissionBonus/100:offreSelectionnee?.commission>0?offreSelectionnee.commission/100:RATE;const commMois=form.paymentType==="monthly"&&form.mensualite>0?Math.round(form.mensualite*tauxForm*100)/100:0;
   const commTotal=form.paymentType==="one_shot"&&form.prixAccompagnement>0?Math.round(form.prixAccompagnement*tauxForm*100)/100:0;
