@@ -79,7 +79,7 @@ function commissionActive(c:any,rate=RATE):number{
 function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.reduce((s:number,c:any)=>s+commissionActive(c,getRate(offers,c.offerId,c)),0); }
 
 function computeKpi(calls:any[],offers:any[]=[]) {
-  const effectues=calls.filter((c:any)=>["call_done","offer_pitched","sale"].includes(c.status)).length;
+  const effectues=calls.filter((c:any)=>["call_done","offer_pitched","pitcher_non_vendu","sale"].includes(c.status)).length;
   const pitched=calls.filter((c:any)=>["offer_pitched","sale"].includes(c.status)).length;
   const sales=calls.filter((c:any)=>c.status==="sale");
   const cashCollecte=sales.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
@@ -1076,7 +1076,7 @@ function PerformancesOffresPage({calls,offers}:any){
   const statsParOffre=useMemo(()=>offers.map((o:any)=>{
     const callsOffre=filtered.filter((c:any)=>c.offerId===o.id);
     const bookes=callsOffre.length;
-    const effectues=callsOffre.filter((c:any)=>["call_done","offer_pitched","sale"].includes(c.status)).length;
+    const effectues=callsOffre.filter((c:any)=>["call_done","offer_pitched","pitcher_non_vendu","sale"].includes(c.status)).length;
     const ventes=callsOffre.filter((c:any)=>c.status==="sale");
     const cashCollecte=ventes.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
     const commTotale=ventes.reduce((s:number,c:any)=>s+commissionDeal(c,getRate(offers,c.offerId,c)),0);
