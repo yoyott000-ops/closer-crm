@@ -80,7 +80,7 @@ function getCommActiveGlobale(calls:any[],offers:any[]):number{ return calls.red
 
 function computeKpi(calls:any[],offers:any[]=[]) {
   const effectues=calls.filter((c:any)=>["call_done","offer_pitched","pitcher_non_vendu","sale"].includes(c.status)).length;
-  const pitched=calls.filter((c:any)=>["offer_pitched","sale"].includes(c.status)).length;
+  const pitched=calls.filter((c:any)=>["offer_pitched","pitcher_non_vendu","sale"].includes(c.status)).length;
   const sales=calls.filter((c:any)=>c.status==="sale");
   const cashCollecte=sales.reduce((s:number,c:any)=>s+Number(c.cashCollecte||0),0);
   const cashContracte=sales.reduce((s:number,c:any)=>s+Number(c.prixAccompagnement||0),0);
